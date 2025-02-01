@@ -19,6 +19,10 @@ The controller responds with such a frame; this was gathered while powered at 30
 a Hall Fault as well as Undervoltage fault. The fault code is `00000084`. The controller temp is shown as 24C, while
 external temp is 190.
 
+```
+c0 14 0d 59 42 00 00 00 00 00 00 00 00 84 00 00 4b f0 00 00 01 07 fb 0d
+```
+
 ### Field reference
 
 ```
@@ -76,3 +80,8 @@ also the detail for status in B21:
 6=WAIT
 7=FAULT
 ```
+
+### Known fault codes:
+
+bits for 4 and 8: hall failure and undervoltage
+
