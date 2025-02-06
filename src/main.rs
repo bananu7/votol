@@ -4,6 +4,8 @@ use std::{num::ParseIntError};
 
 use clap::{Arg, Command};
 
+pub mod votol;
+
 pub fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
     (0..s.len())
         .step_by(2)
