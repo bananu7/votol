@@ -24,6 +24,9 @@ heapless = { version = "0.8", default-features = false }
 nb = "1.0.0"
 static_cell = "2.0.0"
 
+
+max7219 = "0.4.2"
+
 [profile.dev]
 opt-level = "s"
 

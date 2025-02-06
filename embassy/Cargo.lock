@@ -368,6 +368,7 @@ dependencies = [
  "embassy-usb",
  "embedded-hal 0.2.7",
  "heapless",
+ "max7219",
  "nb 1.1.0",
  "panic-probe",
  "static_cell",
@@ -626,6 +627,15 @@ name = "log"
 version = "0.4.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04cbf5b083de1c7e0222a7a51dbfdba1cbe1c6ab0b15e29fff3f6c077fd9cd9f"
+
+[[package]]
+name = "max7219"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96ad36f14b96e5e196c3cf1028eba57c8cf4e6045b1d4b68951d23c422400d1c"
+dependencies = [
+ "embedded-hal 0.2.7",
+]
 
 [[package]]
 name = "nb"
