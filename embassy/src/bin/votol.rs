@@ -60,42 +60,7 @@ async fn handle_frame(env: Envelope, read_mode: &str, counter: &mut usize, frame
         }
     }
 }
-/*fn handle_frame(env: Envelope, read_mode: &str) {
-    match env.frame.id() {
-        Id::Extended(id) => {
-            /*defmt::println!(
-                "{} Extended Frame id={:x} {:02x}",
-                read_mode,
-                id.as_raw(),
-                env.frame.data()
-            );*/
-        }
-        Id::Standard(id) => {
-            if *id == StandardId::new(1022).unwrap() {
-                defmt::println!(
-                    "{} Standard Frame id={:x} {:02x}",
-                    read_mode,
-                    id.as_raw(),
-                    env.frame.data()
-                );
 
-                // just for globals
-                unsafe {
-                    for i in 0..8 {
-                        frames[counter][i] = env.frame.data()[i];
-                    }
-
-                    counter += 1;
-                    if counter == 3 {
-                        counter = 0;
-                    }
-
-                    defmt::println!("{}", frames);
-                }
-            }
-        }
-    }
-}*/
 
 #[embassy_executor::task]
 async fn send_votol_msg(mut tx: CanTx<'static>) {
