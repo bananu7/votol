@@ -13,9 +13,12 @@ use embassy_stm32::{bind_interrupts, Config};
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
-use embassy_stm32::gpio::{Input, Pull, Speed, Level, Output};
+use embassy_stm32::gpio::{Speed, Level, Output};
 
 use embassy_time::Timer;
+
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::mutex::Mutex;
 
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
@@ -72,24 +75,21 @@ fn handle_frame(env: Envelope, read_mode: &str) {
     }
 }
 
+
+
 #[embassy_executor::task]
 async fn send_votol_msg(mut tx: CanTx<'static>) {
-    let votol_msg: [u8; 24] = [0xc9, 0x14, 0x02, 0x53, 0x48, 0x4f, 0x57, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0x00, 0x00, 0x00, 0x18, 0xaa, 0x00, 0x00, 0x00, 0x00, 0xc4, 0x0d];
-
     // from ES https://endless-sphere.com/sphere/threads/votol-em100-canbus-protocols.114159/
-    // id = 1023
     let votol_can_msg1: [u8; 8] = [9, 85, 170, 170, 0, 170, 0, 0];
     let votol_can_msg2: [u8; 8] = [0, 24, 170, 5, 210, 0, 32, 51];
-
-    // from my captures
-    //let votol_can_msg2: [u8; 8] = [0, 24, 170, 5, 220, 0, 26, 7];
+    let id = unwrap!(StandardId::new(1023));
+    let tx_frame = Frame::new_data(id, &votol_can_msg1).unwrap();
+    let tx_frame2 = Frame::new_data(id, &votol_can_msg2).unwrap();
 
     loop {
-        let tx_frame = Frame::new_data(unwrap!(StandardId::new(1023)), &votol_can_msg1).unwrap();
         info!("writing votol message1");
         tx.write(&tx_frame).await;
 
-        let tx_frame2 = Frame::new_data(unwrap!(StandardId::new(1023)), &votol_can_msg2).unwrap();
         info!("writing votol message2");
         tx.write(&tx_frame2).await;
 
@@ -97,13 +97,14 @@ async fn send_votol_msg(mut tx: CanTx<'static>) {
     }
 }
 
+
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
-    let mut p = embassy_stm32::init(Config::default());
+    let p = embassy_stm32::init(Config::default());
 
-    let mut cs = Output::new(p.PB12, Level::High, Speed::VeryHigh);
-    let mut sck = Output::new(p.PB13, Level::High, Speed::VeryHigh);
-    let mut data = Output::new(p.PB15, Level::High, Speed::VeryHigh);
+    let cs = Output::new(p.PB12, Level::High, Speed::VeryHigh);
+    let sck = Output::new(p.PB13, Level::High, Speed::VeryHigh);
+    let data = Output::new(p.PB15, Level::High, Speed::VeryHigh);
     let mut display = setup_display(cs, sck, data);
 
     // Set alternate pin mapping to B8/B9
@@ -124,11 +125,9 @@ async fn main(spawner: Spawner) {
         .set_bitrate(250_000);
 
     info!("enabling can");
-
     can.enable().await;
-    let mut i: u8 = 0;
 
-    let (mut tx, mut rx) = can.split();
+    let (tx, mut rx) = can.split();
 
     spawner.spawn(send_votol_msg(tx)).unwrap();
 

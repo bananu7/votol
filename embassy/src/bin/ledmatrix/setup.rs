@@ -1,5 +1,4 @@
 use embassy_stm32::gpio::{Output};
-use max7219::connectors::Connector;
 
 pub fn setup_display(cs: Output<'static>, sck: Output<'static>, data: Output<'static>) -> max7219::MAX7219<max7219::connectors::PinConnector<Output<'static>, Output<'static>, Output<'static>>> {
     /*
