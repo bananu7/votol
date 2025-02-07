@@ -19,7 +19,7 @@ use embassy_time::Timer;
 
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
-use crate::ledmatrix::api::write_fullscreen_voltage;
+use crate::ledmatrix::api::{write_fullscreen_voltage, write_battery_bar};
 
 bind_interrupts!(struct Irqs {
     USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
@@ -144,7 +144,8 @@ async fn main(spawner: Spawner) {
         // mutable static
         unsafe {
             let v: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
-            write_fullscreen_voltage(v, &mut display);
+            //write_fullscreen_voltage(v, &mut display);
+            write_battery_bar(v, &mut display);
         }
     }
 }
