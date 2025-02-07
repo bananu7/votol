@@ -1,8 +1,8 @@
 use crate::ledmatrix::digits::output_digit;
-use max7219::connectors::Connector;
+use crate::ledmatrix::compositor::Compositor;
 
 // just to test
-pub fn write_fullscreen_voltage<CONN: Connector>(voltage: u16, display: &mut max7219::MAX7219<CONN>) {
+pub fn write_fullscreen_voltage(voltage: u16, display: &mut Compositor) {
     // fixed point in 0.1
     let v = (voltage / 10) as u8;
     let frac = (voltage % 10) as u8;
@@ -23,7 +23,7 @@ fn flip_byte(b: u8) -> u8 {
     (lookup[(b&0b1111) as usize] << 4) | lookup[(b>>4) as usize]
 }
 
-pub fn write_battery_bar<CONN: Connector>(voltage: u16, display: &mut max7219::MAX7219<CONN>) {
+pub fn write_battery_bar(voltage: u16, display: &mut Compositor) {
     // assuming Vmax = 4.2V, Vmin = 2.75V
     // 20s means 55.0-84.0V swing.
 

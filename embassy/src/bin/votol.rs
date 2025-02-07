@@ -10,7 +10,6 @@ use embassy_stm32::can::{
 };
 use embassy_stm32::peripherals::CAN;
 use embassy_stm32::{bind_interrupts, Config};
-use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
 use embassy_stm32::gpio::{Speed, Level, Output};
@@ -20,6 +19,7 @@ use embassy_time::Timer;
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
 use crate::ledmatrix::api::{write_fullscreen_voltage, write_battery_bar};
+use crate::ledmatrix::compositor::{Compositor, write_out};
 
 bind_interrupts!(struct Irqs {
     USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
@@ -123,6 +123,7 @@ async fn main(spawner: Spawner) {
         [0,0,0,0,0,0,0,0]
     ];
     let mut frame_counter: usize = 0;
+    let mut compositor = Compositor::new();
 
     spawner.spawn(send_votol_msg(tx)).unwrap();
     // END VOTOL --------------------------------------------
@@ -137,7 +138,8 @@ async fn main(spawner: Spawner) {
         handle_frame(env, "Wait", &mut frame_counter, &mut frames).await;
 
         let v: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
-        //write_fullscreen_voltage(v, &mut display);
-        write_battery_bar(v, &mut display);
+        write_fullscreen_voltage(v, &mut compositor);
+        write_battery_bar(v, &mut compositor);
+        write_out(&compositor, &mut display);
     }
 }
