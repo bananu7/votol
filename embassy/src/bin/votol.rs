@@ -138,6 +138,7 @@ async fn main(spawner: Spawner) {
         handle_frame(env, "Wait", &mut frame_counter, &mut frames).await;
 
         let v: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
+        compositor.clear();
         write_fullscreen_voltage(v, &mut compositor);
         write_battery_bar(v, &mut compositor);
         write_out(&compositor, &mut display);

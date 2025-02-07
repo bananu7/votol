@@ -1,5 +1,5 @@
 use crate::ledmatrix::digits::output_digit;
-use crate::ledmatrix::compositor::Compositor;
+use crate::ledmatrix::compositor::{Compositor, WriteMode};
 
 // just to test
 pub fn write_fullscreen_voltage(voltage: u16, display: &mut Compositor) {
@@ -7,9 +7,9 @@ pub fn write_fullscreen_voltage(voltage: u16, display: &mut Compositor) {
     let v = (voltage / 10) as u8;
     let frac = (voltage % 10) as u8;
 
-    display.write_raw(0, &output_digit(v / 10));
-    display.write_raw(1, &output_digit(v % 10));
-    display.write_raw(3, &output_digit(frac));
+    display.write_raw(0, &output_digit(v / 10), WriteMode::BLEND);
+    display.write_raw(1, &output_digit(v % 10), WriteMode::BLEND);
+    display.write_raw(3, &output_digit(frac), WriteMode::BLEND);
 }
 
 // flips the bit in a byte the other way around, e.g.
@@ -45,8 +45,8 @@ pub fn write_battery_bar(voltage: u16, display: &mut Compositor) {
     let c = flip_byte(((bitmask & 0x00FF0000) >> 16) as u8);
     let d = flip_byte(((bitmask & 0xFF000000) >> 24) as u8);
 
-    display.write_raw(0, &[0,0,0,0,0,0,0, a]);
-    display.write_raw(1, &[0,0,0,0,0,0,0, b]);
-    display.write_raw(2, &[0,0,0,0,0,0,0, c]);
-    display.write_raw(3, &[0,0,0,0,0,0,0, d]);
+    display.write_raw(0, &[0,0,0,0,0,0,0, a], WriteMode::BLEND);
+    display.write_raw(1, &[0,0,0,0,0,0,0, b], WriteMode::BLEND);
+    display.write_raw(2, &[0,0,0,0,0,0,0, c], WriteMode::BLEND);
+    display.write_raw(3, &[0,0,0,0,0,0,0, d], WriteMode::BLEND);
 }
