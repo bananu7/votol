@@ -7,9 +7,9 @@ pub fn write_fullscreen_voltage(voltage: u16, display: &mut Compositor) {
     let v = (voltage / 10) as u8;
     let frac = (voltage % 10) as u8;
 
-    display.write_raw(0, &output_digit(v / 10), WriteMode::BLEND);
-    display.write_raw(1, &output_digit(v % 10), WriteMode::BLEND);
-    display.write_raw(3, &output_digit(frac), WriteMode::BLEND);
+    display.blit(0, 0, 3, 6, &output_digit(v / 10));
+    display.blit(4, 0, 3, 6, &output_digit(v % 10));
+    display.blit(8, 1, 3, 6, &output_digit(frac));
 }
 
 // flips the bit in a byte the other way around, e.g.

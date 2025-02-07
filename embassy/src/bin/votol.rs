@@ -142,9 +142,6 @@ async fn main(spawner: Spawner) {
         write_fullscreen_voltage(v, &mut compositor);
         write_battery_bar(v, &mut compositor);
 
-        compositor.shift_right();
-        compositor.shift_right();
-
         write_out(&compositor, &mut display);
     }
 }
