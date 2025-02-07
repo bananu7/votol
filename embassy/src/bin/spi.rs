@@ -13,6 +13,19 @@ use embassy_stm32::time::Hertz;
 pub mod lib;
 use crate::lib::output_digit;
 
+use max7219::connectors::Connector;
+
+// just to test
+fn write_fullscreen_voltage<CONN: Connector>(voltage: u16, display: &mut max7219::MAX7219<CONN>) {
+    // fixed point in 0.1
+    let v = (voltage / 10) as u8;
+    let frac = (voltage % 10) as u8;
+
+    display.write_raw(0, &output_digit(v / 10));
+    display.write_raw(1, &output_digit(v % 10));
+    display.write_raw(3, &output_digit(frac));
+}
+
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
     let p = embassy_stm32::init(Default::default());
@@ -38,10 +51,8 @@ async fn main(_spawner: Spawner) {
     let mut counter = 0u8;
     loop {
         led.set_low();
-        // first value is first row, bits are cols
-        display.write_raw(0, &output_digit(counter));
-        display.write_raw(1, &output_digit(counter+1));
-        display.write_raw(3, &output_digit(counter+2));
+
+        write_fullscreen_voltage(529, &mut display);
 
         counter += 1;
         if counter > 9 {
