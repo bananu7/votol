@@ -39,6 +39,24 @@ impl Compositor {
             }
         }
     }
+
+    pub fn shift_right(&mut self) {
+        for i in 0..8 {
+            self.data[3][i] >>= 1;
+            self.data[3][i] |= (0b1 & self.data[2][i]) << 7;
+        }
+        for i in 0..8 {
+            self.data[2][i] >>= 1;
+            self.data[2][i] |= (0b1 & self.data[1][i]) << 7;
+        }
+        for i in 0..8 {
+            self.data[1][i] >>= 1;
+            self.data[1][i] |= (0b1 & self.data[0][i]) << 7;
+        }
+        for i in 0..8 {
+            self.data[0][i] >>= 1;
+        }
+    }
 }
 
 pub fn write_out<CONN: Connector>(compositor: &Compositor, display: &mut max7219::MAX7219<CONN>) -> Result<(), DataError> {
