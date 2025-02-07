@@ -13,9 +13,13 @@ use embassy_stm32::{bind_interrupts, Config};
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
-use embassy_stm32::gpio::{Input, Pull};
+use embassy_stm32::gpio::{Input, Pull, Speed, Level, Output};
 
 use embassy_time::Timer;
+
+pub mod ledmatrix;
+use crate::ledmatrix::setup::setup_display;
+use crate::ledmatrix::api::write_fullscreen_voltage;
 
 bind_interrupts!(struct Irqs {
     USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
@@ -24,8 +28,12 @@ bind_interrupts!(struct Irqs {
     USB_HP_CAN1_TX => TxInterruptHandler<CAN>;
 });
 
-// This example is configured to work with real CAN transceivers on B8/B9.
-// See other examples for loopback.
+static mut frames: [[u8; 8]; 3] = [
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0]
+];
+static mut counter: usize = 0;
 
 fn handle_frame(env: Envelope, read_mode: &str) {
     match env.frame.id() {
@@ -38,13 +46,27 @@ fn handle_frame(env: Envelope, read_mode: &str) {
             );*/
         }
         Id::Standard(id) => {
-            if (*id == StandardId::new(1022).unwrap()) {
+            if *id == StandardId::new(1022).unwrap() {
                 defmt::println!(
                     "{} Standard Frame id={:x} {:02x}",
                     read_mode,
                     id.as_raw(),
                     env.frame.data()
                 );
+
+                // just for globals
+                unsafe {
+                    for i in 0..8 {
+                        frames[counter][i] = env.frame.data()[i];
+                    }
+
+                    counter += 1;
+                    if counter == 3 {
+                        counter = 0;
+                    }
+
+                    defmt::println!("{}", frames);
+                }
             }
         }
     }
@@ -71,7 +93,7 @@ async fn send_votol_msg(mut tx: CanTx<'static>) {
         info!("writing votol message2");
         tx.write(&tx_frame2).await;
 
-        Timer::after_millis(1000).await;
+        Timer::after_millis(300).await;
     }
 }
 
@@ -79,18 +101,16 @@ async fn send_votol_msg(mut tx: CanTx<'static>) {
 async fn main(spawner: Spawner) {
     let mut p = embassy_stm32::init(Config::default());
 
+    let mut cs = Output::new(p.PB12, Level::High, Speed::VeryHigh);
+    let mut sck = Output::new(p.PB13, Level::High, Speed::VeryHigh);
+    let mut data = Output::new(p.PB15, Level::High, Speed::VeryHigh);
+    let mut display = setup_display(cs, sck, data);
+
     // Set alternate pin mapping to B8/B9
     //embassy_stm32::pac::AFIO.mapr().modify(|w| w.set_can1_remap(2));
 
     static RX_BUF: StaticCell<embassy_stm32::can::RxBuf<10>> = StaticCell::new();
     static TX_BUF: StaticCell<embassy_stm32::can::TxBuf<10>> = StaticCell::new();
-
-    // The next two lines are a workaround for testing without transceiver.
-    // To synchronise to the bus the RX input needs to see a high level.
-    // Use `mem::forget()` to release the borrow on the pin but keep the
-    // pull-up resistor enabled.
-    //let rx_pin = Input::new(&mut p.PA11, Pull::Up);
-    //core::mem::forget(rx_pin);
 
     //let mut can = Can::new(p.CAN, p.PB8, p.PB9, Irqs);
     let mut can = Can::new(p.CAN, p.PA11, p.PA12, Irqs);
@@ -120,5 +140,11 @@ async fn main(spawner: Spawner) {
         let env = rx.try_read().unwrap();
         //info!("read succesful");
         handle_frame(env, "Wait");
+
+        // mutable static
+        unsafe {
+            let v: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
+            write_fullscreen_voltage(v, &mut display);
+        }
     }
 }

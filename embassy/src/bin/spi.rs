@@ -15,8 +15,6 @@ pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
 use crate::ledmatrix::api::write_fullscreen_voltage;
 
-use max7219::connectors::Connector;
-
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
     let p = embassy_stm32::init(Default::default());
