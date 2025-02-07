@@ -30,7 +30,7 @@ bind_interrupts!(struct Irqs {
 
 async fn handle_frame(env: Envelope, read_mode: &str, counter: &mut usize, frames: &mut [[u8; 8]; 3]) {
     match env.frame.id() {
-        Id::Extended(id) => {
+        Id::Extended(_id) => {
             /*defmt::println!(
                 "{} Extended Frame id={:x} {:02x}",
                 read_mode,
@@ -133,11 +133,8 @@ async fn main(spawner: Spawner) {
     // CAN -----------------------
     // Set alternate pin mapping to B8/B9
     //embassy_stm32::pac::AFIO.mapr().modify(|w| w.set_can1_remap(2));
-
-    static RX_BUF: StaticCell<embassy_stm32::can::RxBuf<10>> = StaticCell::new();
-    static TX_BUF: StaticCell<embassy_stm32::can::TxBuf<10>> = StaticCell::new();
-
     //let mut can = Can::new(p.CAN, p.PB8, p.PB9, Irqs);
+
     let mut can = Can::new(p.CAN, p.PA11, p.PA12, Irqs);
 
     can.modify_filters()
