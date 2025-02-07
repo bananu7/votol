@@ -10,37 +10,12 @@ use {defmt_rtt as _, panic_probe as _};
 use embassy_stm32::spi::{Config, Spi};
 use embassy_stm32::time::Hertz;
 
-pub mod lib;
-use crate::lib::output_digit;
+pub mod ledmatrix;
+
+use crate::ledmatrix::setup::setup_display;
+use crate::ledmatrix::api::write_fullscreen_voltage;
 
 use max7219::connectors::Connector;
-
-// just to test
-fn write_fullscreen_voltage<CONN: Connector>(voltage: u16, display: &mut max7219::MAX7219<CONN>) {
-    // fixed point in 0.1
-    let v = (voltage / 10) as u8;
-    let frac = (voltage % 10) as u8;
-
-    display.write_raw(0, &output_digit(v / 10));
-    display.write_raw(1, &output_digit(v % 10));
-    display.write_raw(3, &output_digit(frac));
-}
-
-fn setup_display(cs: Output<'static>, sck: Output<'static>, data: Output<'static>) -> max7219::MAX7219<max7219::connectors::PinConnector<Output<'static>, Output<'static>, Output<'static>>> {
-    /*
-    let mut spi_config = Config::default();
-    spi_config.frequency = Hertz(1_000_000);
-    let spi = Spi::new_blocking(p.SPI2, p.PB13, p.PB15, p.PB14, spi_config);
-    */
-
-    //let mut display = max7219::MAX7219::from_spi(4, spi).unwrap();
-    let mut display = max7219::MAX7219::from_pins(4, data, cs, sck).unwrap();
-
-    display.power_on().unwrap();
-    display.set_intensity(0, 0x0).unwrap();
-
-    display
-}
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
