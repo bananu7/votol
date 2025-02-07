@@ -17,9 +17,6 @@ use embassy_stm32::gpio::{Speed, Level, Output};
 
 use embassy_time::Timer;
 
-use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
-use embassy_sync::mutex::Mutex;
-
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
 use crate::ledmatrix::api::{write_fullscreen_voltage, write_battery_bar};
@@ -31,14 +28,39 @@ bind_interrupts!(struct Irqs {
     USB_HP_CAN1_TX => TxInterruptHandler<CAN>;
 });
 
-static mut frames: [[u8; 8]; 3] = [
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0]
-];
-static mut counter: usize = 0;
+async fn handle_frame(env: Envelope, read_mode: &str, counter: &mut usize, frames: &mut [[u8; 8]; 3]) {
+    match env.frame.id() {
+        Id::Extended(id) => {
+            /*defmt::println!(
+                "{} Extended Frame id={:x} {:02x}",
+                read_mode,
+                id.as_raw(),
+                env.frame.data()
+            );*/
+        }
+        Id::Standard(id) => {
+            if *id == StandardId::new(1022).unwrap() {
+                defmt::println!(
+                    "{} Standard Frame id={:x} {:02x}",
+                    read_mode,
+                    id.as_raw(),
+                    env.frame.data()
+                );
 
-fn handle_frame(env: Envelope, read_mode: &str) {
+                for i in 0..8 {
+                    frames[*counter][i] = env.frame.data()[i];
+                }
+                defmt::println!("{}", *frames);
+
+                *counter += 1;
+                if *counter == 3 {
+                    *counter = 0;
+                }
+            }
+        }
+    }
+}
+/*fn handle_frame(env: Envelope, read_mode: &str) {
     match env.frame.id() {
         Id::Extended(id) => {
             /*defmt::println!(
@@ -73,9 +95,7 @@ fn handle_frame(env: Envelope, read_mode: &str) {
             }
         }
     }
-}
-
-
+}*/
 
 #[embassy_executor::task]
 async fn send_votol_msg(mut tx: CanTx<'static>) {
@@ -102,11 +122,15 @@ async fn send_votol_msg(mut tx: CanTx<'static>) {
 async fn main(spawner: Spawner) {
     let p = embassy_stm32::init(Config::default());
 
+    // DISPLAY -----------------------
     let cs = Output::new(p.PB12, Level::High, Speed::VeryHigh);
     let sck = Output::new(p.PB13, Level::High, Speed::VeryHigh);
     let data = Output::new(p.PB15, Level::High, Speed::VeryHigh);
     let mut display = setup_display(cs, sck, data);
+    // END DISPLAY -------------------
 
+
+    // CAN -----------------------
     // Set alternate pin mapping to B8/B9
     //embassy_stm32::pac::AFIO.mapr().modify(|w| w.set_can1_remap(2));
 
@@ -128,8 +152,18 @@ async fn main(spawner: Spawner) {
     can.enable().await;
 
     let (tx, mut rx) = can.split();
+    // END CAN -----------------------
+
+    // VOTOL --------------------------------------------
+    let mut frames: [[u8; 8]; 3] = [
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0]
+    ];
+    let mut frame_counter: usize = 0;
 
     spawner.spawn(send_votol_msg(tx)).unwrap();
+    // END VOTOL --------------------------------------------
 
     // This example shows using the wait_not_empty API before try read
     loop {
@@ -138,13 +172,10 @@ async fn main(spawner: Spawner) {
 
         let env = rx.try_read().unwrap();
         //info!("read succesful");
-        handle_frame(env, "Wait");
+        handle_frame(env, "Wait", &mut frame_counter, &mut frames).await;
 
-        // mutable static
-        unsafe {
-            let v: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
-            //write_fullscreen_voltage(v, &mut display);
-            write_battery_bar(v, &mut display);
-        }
+        let v: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
+        //write_fullscreen_voltage(v, &mut display);
+        write_battery_bar(v, &mut display);
     }
 }
