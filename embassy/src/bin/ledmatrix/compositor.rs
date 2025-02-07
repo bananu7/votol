@@ -57,6 +57,28 @@ impl Compositor {
             self.data[0][i] >>= 1;
         }
     }
+
+    pub fn write_bit(&mut self, x: usize, y: usize, value: bool) {
+        let row = 1 << (7 - (x % 8));
+        let screen = x / 8;
+
+        self.data[screen][y] = row;
+    }
+
+    // takes maximum screen size to simplify, it's just 32 bytes anyway.
+    // first row of first screen is byte 0, first row of 2nd screen is byte 1
+    // 2nd row of first screen is byte 4 and so on
+
+    pub fn blit(&mut self, xoff: usize, yoff: usize, xs: usize, ys: usize, data: &[u8; 32]) {
+        for x in 0..xs {
+            for y in 0..ys {
+                let ix = y * 4 + x / 8;
+                if data[ix] & (1 << (x % 8)) == 1 {
+                    self.write_bit(x + xoff, y + yoff, true);
+                }
+            }
+        }
+    }
 }
 
 pub fn write_out<CONN: Connector>(compositor: &Compositor, display: &mut max7219::MAX7219<CONN>) -> Result<(), DataError> {
