@@ -20,6 +20,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Install ARMv7 target
+      run: rustup target add thumbv7m-none-eabi
     - name: Build
       run: cargo build --bin votol --release --verbose
     - name: Run tests
