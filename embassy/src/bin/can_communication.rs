@@ -61,7 +61,7 @@ pub async fn handle_frame(env: Envelope, read_mode: &str, counter: &mut usize, f
 }
 
 pub fn create_fake_votol_response(id: usize) -> Envelope {
-    let battery_voltage: u16 = 551;
+    let battery_voltage: u16 = 720;
     let bv_h: u8 = (battery_voltage >> 8) as u8;
     let bv_l: u8 = (battery_voltage & 0xFF) as u8;
 

@@ -35,13 +35,10 @@ pub fn write_battery_bar(voltage: u16, display: &mut Compositor) {
     let v_max = 840;
     let v_min = 550;
 
-    // temporary
-    let v = voltage * 3;
-
     // we need a value from 1 to 32
     // multiply first otherwise it would go to 0-1
 
-    let number_of_leds = ((v - v_min) * 32) / (v_max-v_min);
+    let number_of_leds = ((voltage - v_min) * 32) / (v_max-v_min);
     let bitmask: u32 = (1 << (number_of_leds+1)) - 1;
 
     // write to last row of bits on each display
