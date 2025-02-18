@@ -22,7 +22,7 @@ use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num
 use crate::ledmatrix::compositor::{Compositor, write_out};
 
 pub mod can_frame;
-use crate::can_frame::{get_battery_voltage, get_controller_temp};
+use crate::can_frame::{get_battery_voltage, get_controller_temp, clamp_temp_to_0};
 
 bind_interrupts!(struct Irqs {
     USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
@@ -86,7 +86,7 @@ async fn send_votol_msg(mut tx: CanTx<'static>) {
 }
 
 fn create_fake_votol_response(id: usize) -> Envelope {
-    let battery_voltage: u16 = 0x227;
+    let battery_voltage: u16 = 551;
     let bv_h: u8 = (battery_voltage >> 8) as u8;
     let bv_l: u8 = (battery_voltage & 0xFF) as u8;
 
@@ -165,7 +165,7 @@ async fn main(spawner: Spawner) {
         write_fullscreen_float(battery_voltage, &mut compositor);
         write_battery_bar(battery_voltage, &mut compositor);
 
-        let controller_temp = get_controller_temp(&frames);
+        let controller_temp = clamp_temp_to_0(get_controller_temp(&frames));
         write_num(controller_temp, 14, 0, &mut compositor);
 
         write_out(&compositor, &mut display);
