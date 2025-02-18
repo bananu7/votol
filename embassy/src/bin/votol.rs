@@ -11,7 +11,7 @@ use embassy_stm32::peripherals::CAN;
 use embassy_stm32::{bind_interrupts, Config};
 use {defmt_rtt as _, panic_probe as _};
 
-use embassy_stm32::gpio::{Speed, Level, Output};
+use embassy_stm32::gpio::{Speed, Level, Output, Input, Pull};
 
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
@@ -19,7 +19,7 @@ use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num
 use crate::ledmatrix::compositor::{Compositor, write_out};
 
 pub mod can_frame;
-use crate::can_frame::{get_battery_voltage, get_controller_temp, clamp_temp_to_0};
+use crate::can_frame::{get_battery_voltage, get_controller_temp, get_external_temp, clamp_temp_to_0};
 
 pub mod can_communication;
 use crate::can_communication::{send_votol_msg, handle_frame, create_fake_votol_response};
@@ -64,6 +64,11 @@ async fn main(spawner: Spawner) {
     let (tx, mut rx) = can.split();
     // END CAN -----------------------
 
+    // BUTTONS
+    let button_a = Input::new(p.PB10, Pull::Up);
+    let button_b = Input::new(p.PB11, Pull::Up);
+    // END BUTTONS
+
     // VOTOL --------------------------------------------
     let mut frames: [[u8; 8]; 3] = [
         [0,0,0,0,0,0,0,0],
@@ -94,7 +99,12 @@ async fn main(spawner: Spawner) {
         write_battery_bar(battery_voltage, &mut compositor);
 
         let controller_temp = clamp_temp_to_0(get_controller_temp(&frames));
-        write_num(controller_temp, 14, 0, &mut compositor);
+        let external_temp = clamp_temp_to_0(get_external_temp(&frames));
+        if button_a.is_high() {
+            write_num(controller_temp, 14, 0, &mut compositor);
+        } else {
+            write_num(external_temp, 14, 0, &mut compositor);
+        }
 
         write_out(&compositor, &mut display);
     }
