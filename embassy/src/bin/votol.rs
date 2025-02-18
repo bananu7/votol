@@ -18,7 +18,7 @@ use embassy_time::Timer;
 
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
-use crate::ledmatrix::api::{write_fullscreen_voltage, write_battery_bar};
+use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num};
 use crate::ledmatrix::compositor::{Compositor, write_out};
 
 bind_interrupts!(struct Irqs {
@@ -137,10 +137,13 @@ async fn main(spawner: Spawner) {
         //info!("read succesful");
         handle_frame(env, "Wait", &mut frame_counter, &mut frames).await;
 
-        let v: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
+        let battery_voltage: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
         compositor.clear();
-        write_fullscreen_voltage(v, &mut compositor);
-        write_battery_bar(v, &mut compositor);
+        write_fullscreen_float(battery_voltage, &mut compositor);
+        write_battery_bar(battery_voltage, &mut compositor);
+
+        let controller_temp = frames[2][2] - 50; // 50C offset
+        write_num(controller_temp, 14, 0, &mut compositor);
 
         write_out(&compositor, &mut display);
     }

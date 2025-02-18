@@ -2,7 +2,7 @@ use crate::ledmatrix::digits::output_digit;
 use crate::ledmatrix::compositor::{Compositor, WriteMode};
 
 // just to test
-pub fn write_fullscreen_voltage(voltage: u16, display: &mut Compositor) {
+pub fn write_fullscreen_float(voltage: u16, display: &mut Compositor) {
     // fixed point in 0.1
     let v = (voltage / 10) as u8;
     let frac = (voltage % 10) as u8;
@@ -10,6 +10,11 @@ pub fn write_fullscreen_voltage(voltage: u16, display: &mut Compositor) {
     display.blit(0, 0, 3, 6, &output_digit(v / 10));
     display.blit(4, 0, 3, 6, &output_digit(v % 10));
     display.blit(8, 1, 3, 6, &output_digit(frac));
+}
+
+pub fn write_num(number: u8, x: usize, y: usize, display: &mut Compositor) {
+    display.blit(0+x, 0+y, 3, 6, &output_digit(number / 10));
+    display.blit(4+x, 0+y, 3, 6, &output_digit(number % 10));
 }
 
 // flips the bit in a byte the other way around, e.g.
