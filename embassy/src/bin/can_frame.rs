@@ -25,7 +25,7 @@ pub fn get_external_temp(frames: &ThreeVotolFrames) -> i16 {
 }
 
 pub fn clamp_temp_to_0(temp: i16) -> u8 {
-    if (temp < 0) {
+    if temp < 0 {
         0
     } else {
         temp as u8
