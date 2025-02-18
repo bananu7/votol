@@ -3,7 +3,7 @@
 
 use defmt::*;
 use embassy_executor::Spawner;
-use embassy_stm32::can::frame::Envelope;
+use embassy_stm32::can::frame::{Envelope, Timestamp};
 use embassy_stm32::can::{
     filter, Can, Fifo, Frame, Id, Rx0InterruptHandler, Rx1InterruptHandler, SceInterruptHandler, StandardId,
     TxInterruptHandler, CanTx,
@@ -82,6 +82,19 @@ async fn send_votol_msg(mut tx: CanTx<'static>) {
     }
 }
 
+fn create_fake_votol_response(id: usize) -> Envelope {
+    let votol_can_responses: [[u8; 8]; 3] = [
+        [0x09, 0x55, 0xaa, 0xaa, 0x00, 0x00, 0x00, 0x01],
+        [0x27, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x84],
+        [0x00, 0x00, 0x4a, 0xf0, 0x00, 0x00, 0x01, 0x07]
+    ];
+
+    return Envelope {
+        ts: Timestamp::now(),
+        frame: Frame::new_standard(1022, &votol_can_responses[id]).unwrap(),
+    }
+}
+
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -130,11 +143,14 @@ async fn main(spawner: Spawner) {
 
     // This example shows using the wait_not_empty API before try read
     loop {
-        //info!("waiting for not empty");
-        rx.wait_not_empty().await;
+        let env = if false {
+            //info!("waiting for not empty");
+            rx.wait_not_empty().await;
+            rx.try_read().unwrap()
+        } else {
+            create_fake_votol_response(frame_counter)
+        };
 
-        let env = rx.try_read().unwrap();
-        //info!("read succesful");
         handle_frame(env, "Wait", &mut frame_counter, &mut frames).await;
 
         let battery_voltage: u16 = ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16);
