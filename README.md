@@ -7,7 +7,34 @@ I'm converting a CRF250 MX motorcycle to electric power, using the Votol EM260SG
 Unless otherwise noted, all descriptions, labels etc. apply to _my specific controller_. Different models of the controller can differ; make sure you understand the cable functions
 and model of yours.
 
+## Project structure
+
+* `desktop/` - early beginnings of a desktop app that were meant to replace the original desktop programmer
+* `embassy/` - firmware of the display controller that goes on the bike and communicates with Votol EM
+* `reference/` - technical details and descriptions of the controller protocol
+
 ## Log
+
+### 2025-02-18
+
+I did some more work on the miscellaneous features for the display. Got better frame decoding working, modularized things and importantly created a simulation mode that allows development without a controller connected (still on real hardware, though). I'm still not sure how I want to present all the available data or what peripherals to connect. Ideas list includes:
+
+* all main controller parameters (works for now: battery voltage, temperatures)
+* ride mode
+* all controller errors in readable format
+* temperature alerts
+* speed based on the RPM counter
+* trip computer: speed * time (distance traveled), current * time (amp-hours used), max/avg speed, max/avg current, moving time
+
+Additional features based on peripheral hw:
+* RTC - clock :), configuration (maybe I could use internal RTC)
+* SD or flash - datalogger (trip computer but as series)
+* IMU, magnetometer - compass, lean-aware TC
+* front wheel speed sensor - TC, more accurate speed
+* GPS - time, datalogging position
+* BT - phone app, remote config and data reading
+
+This is just a mental note to myself; it's unlikely I'll get to doing all of the above. Once I get the basic features working, I'll also upload the CAD files for the enclosure and print a prototype.
 
 ### 2025-02-13
 
