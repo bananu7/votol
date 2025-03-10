@@ -1,4 +1,4 @@
-use crate::ledmatrix::digits::output_digit;
+use crate::ledmatrix::digits::{output_character, output_digit};
 use crate::ledmatrix::compositor::{Compositor, WriteMode};
 
 // just to test
@@ -22,7 +22,7 @@ pub fn write_num(number: u8, x: usize, y: usize, display: &mut Compositor) {
 fn flip_byte(b: u8) -> u8 {
     let lookup = [
         0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
-        0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf, 
+        0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf,
     ];
 
     (lookup[(b&0b1111) as usize] << 4) | lookup[(b>>4) as usize]

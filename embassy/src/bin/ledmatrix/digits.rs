@@ -1,7 +1,7 @@
 /* max7219 digit helpers */
-pub fn output_digit(digit: u8) -> [u8; 8] {
-    let to_write = match digit {
-        0 => [
+pub fn output_character(character: u8) -> [u8; 8] {
+    let to_write = match character {
+        b'0' => [
             0b11100000,
             0b10100000,
             0b10100000,
@@ -11,7 +11,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        1 => [
+        b'1' => [
             0b01000000,
             0b11000000,
             0b01000000,
@@ -21,7 +21,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        2 => [
+        b'2' => [
             0b11100000,
             0b00100000,
             0b11100000,
@@ -31,7 +31,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        3 => [
+        b'3' => [
             0b11100000,
             0b00100000,
             0b11100000,
@@ -41,7 +41,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        4 => [
+        b'4' => [
             0b10100000,
             0b10100000,
             0b11100000,
@@ -51,7 +51,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        5 => [
+        b'5' => [
             0b11100000,
             0b10000000,
             0b11100000,
@@ -61,7 +61,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        6 => [
+        b'6' => [
             0b11100000,
             0b10000000,
             0b11100000,
@@ -71,7 +71,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        7 => [
+        b'7' => [
             0b11100000,
             0b00100000,
             0b00100000,
@@ -81,7 +81,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        8 => [
+        b'8' => [
             0b11100000,
             0b10100000,
             0b11100000,
@@ -91,7 +91,7 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
             0b00000000,
             0b00000000,
         ],
-        9 => [
+        b'9' => [
             0b11100000,
             0b10100000,
             0b11100000,
@@ -113,4 +113,8 @@ pub fn output_digit(digit: u8) -> [u8; 8] {
         ],
     };
     to_write
+}
+
+pub fn output_digit(digit: u8) -> [u8; 8] {
+    output_character(digit + b'0')
 }
