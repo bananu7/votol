@@ -18,11 +18,9 @@ use crate::ledmatrix::setup::setup_display;
 use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num};
 use crate::ledmatrix::compositor::{Compositor, write_out};
 
-pub mod can_frame;
-use crate::can_frame::{get_battery_voltage, get_controller_temp, get_external_temp, clamp_temp_to_0};
-
-pub mod can_communication;
-use crate::can_communication::{send_votol_msg, handle_frame, create_fake_votol_response};
+pub mod can;
+use crate::can::can_frame::{get_battery_voltage, get_controller_temp, get_external_temp, clamp_temp_to_0};
+use crate::can::can_communication::{send_votol_msg, handle_frame, create_fake_votol_response};
 
 bind_interrupts!(struct Irqs {
     USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
@@ -84,7 +82,6 @@ async fn main(spawner: Spawner) {
     // This example shows using the wait_not_empty API before try read
     loop {
         let env = if false {
-            //info!("waiting for not empty");
             rx.wait_not_empty().await;
             rx.try_read().unwrap()
         } else {
