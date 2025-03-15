@@ -15,7 +15,7 @@ use embassy_stm32::gpio::{Speed, Level, Output, Input, Pull};
 
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
-use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num};
+use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_char};
 use crate::ledmatrix::compositor::{Compositor, write_out};
 
 pub mod can;
@@ -79,6 +79,9 @@ async fn main(spawner: Spawner) {
     spawner.spawn(send_votol_msg(tx)).unwrap();
     // END VOTOL --------------------------------------------
 
+    let mut c: u8 = b'a';
+    let mut pressed = false;
+
     // This example shows using the wait_not_empty API before try read
     loop {
         let env = if false {
@@ -102,6 +105,19 @@ async fn main(spawner: Spawner) {
         } else {
             write_num(external_temp, 14, 0, &mut compositor);
         }
+
+        if button_b.is_low() {
+            if !pressed {
+                c += 1;
+                if c > b'z' {
+                    c = b'a';
+                }
+                pressed = true;
+            }
+        } else {
+            pressed = false;
+        }
+        write_char(c, 24, 0, &mut compositor);
 
         write_out(&compositor, &mut display);
     }
