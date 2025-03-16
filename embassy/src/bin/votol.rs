@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use can::can_frame::{get_controller_state, ControllerState};
 use defmt::*;
 use embassy_executor::Spawner;
 use embassy_stm32::can::{
@@ -15,12 +16,11 @@ use embassy_stm32::gpio::{Speed, Level, Output, Input, Pull};
 
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
-use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_char};
 use crate::ledmatrix::compositor::{Compositor, write_out};
 
 pub mod can;
-use crate::can::can_frame::{get_battery_voltage, get_controller_temp, get_external_temp, clamp_temp_to_0};
 use crate::can::can_communication::{send_votol_msg, handle_frame, create_fake_votol_response};
+use crate::ledmatrix::screens::{ride_screen, fault_screen, display_catastrophe_screen};
 
 bind_interrupts!(struct Irqs {
     USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
@@ -93,31 +93,13 @@ async fn main(spawner: Spawner) {
 
         handle_frame(env, "Wait", &mut frame_counter, &mut frames).await;
 
-        let battery_voltage = get_battery_voltage(&frames);
         compositor.clear();
-        write_fullscreen_float(battery_voltage, &mut compositor);
-        write_battery_bar(battery_voltage, &mut compositor);
 
-        let controller_temp = clamp_temp_to_0(get_controller_temp(&frames));
-        let external_temp = clamp_temp_to_0(get_external_temp(&frames));
-        if button_a.is_high() {
-            write_num(controller_temp, 14, 0, &mut compositor);
-        } else {
-            write_num(external_temp, 14, 0, &mut compositor);
+        match get_controller_state(&frames) {
+            Some(ControllerState::FAULT) => fault_screen(&frames, &mut compositor),
+            Some(_) => ride_screen(&frames, &mut compositor),
+            None => display_catastrophe_screen(&frames, &mut compositor),
         }
-
-        if button_b.is_low() {
-            if !pressed {
-                c += 1;
-                if c > b'z' {
-                    c = b'a';
-                }
-                pressed = true;
-            }
-        } else {
-            pressed = false;
-        }
-        write_char(c, 24, 0, &mut compositor);
 
         write_out(&compositor, &mut display);
     }

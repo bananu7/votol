@@ -1,6 +1,16 @@
 /* max7219 digit helpers */
 pub fn output_character(character: u8) -> [u8; 8] {
     let to_write = match character {
+        b' ' => [
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+        ],
         b'0' => [
             0b11100000,
             0b10100000,
