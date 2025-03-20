@@ -1,18 +1,53 @@
- use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_char};
+ use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char};
  use crate::ledmatrix::compositor::Compositor;
- use crate::can::can_frame::{get_battery_voltage, get_controller_temp, get_external_temp, clamp_temp_to_0, ThreeVotolFrames};
+ use crate::can::can_frame::{get_battery_voltage, get_controller_temp, get_external_temp, clamp_temp_to_0, get_rpm, ThreeVotolFrames};
+
+ pub enum ControllerValue {
+     Rpm,
+     Speed,
+     ControllerTemp,
+     MotorTemp,
+     Voltage,
+     Current
+ }
 
  pub fn ride_screen(frames: &ThreeVotolFrames, compositor: &mut Compositor) {
     let battery_voltage = get_battery_voltage(&frames);
-    write_battery_bar(battery_voltage, compositor);
-    write_fullscreen_float(battery_voltage, compositor);
 
     let controller_temp = clamp_temp_to_0(get_controller_temp(&frames));
     let external_temp = clamp_temp_to_0(get_external_temp(&frames));
+    let rpm = get_rpm(&frames);
 
+    // todo: state or prop?
+    let central_value = ControllerValue::Speed;
+    match central_value {
+        ControllerValue::Rpm => {
+            write_num_4_digits(get_rpm(&frames), 10, 0, compositor);
+        }
+        ControllerValue::Speed => {
+            let mut speed = rpm_to_speed(rpm);
+            // TODO speeds over 100
+            if speed > 99 {
+                speed = 99;
+            }
+
+            write_num(speed, 10, 0, compositor);
+        }
+        ControllerValue::ControllerTemp => {
+            write_num(controller_temp, 14, 0, compositor);
+        }
+        ControllerValue::MotorTemp => {
+            write_num(controller_temp, 14, 0, compositor);
+        }
+        ControllerValue::Voltage => {
+            write_fullscreen_float(battery_voltage, compositor);
+        }
+    }
+
+
+    write_battery_bar(battery_voltage, compositor);
     // todo handle input
     //if button_a.is_high() {
-        write_num(controller_temp, 14, 0, compositor);
         //} else {
         //write_num(external_temp, 14, 0, &mut display);
         //}
@@ -33,6 +68,32 @@
 
     let mode_char = get_mode_char(frames);
     write_char(mode_char, 60, 0, compositor);
+}
+
+fn rpm_to_speed(rpm: i16) -> u8 {
+    // todo: runtime config
+    let front_sprocket = 14;
+    let rear_sprocket = 60;
+    let motor_reduction_a = 20;
+    let motor_reduction_b = 47;
+    let wheel_circumference = 2138; // mm
+    let minutes_in_hour = 60;
+
+    // try to get the number large first
+    let speed =
+        rpm as i32 // use u32 for more precise math
+        * front_sprocket
+        * motor_reduction_a
+        * wheel_circumference
+        / 1000
+        * minutes_in_hour
+        / (
+            rear_sprocket
+            * motor_reduction_b
+            * 1000
+        );
+
+    return speed.abs() as u8;
 }
 
 fn get_mode_char(frames: &ThreeVotolFrames) -> u8 {

@@ -16,6 +16,13 @@ pub fn write_num(number: u8, x: usize, y: usize, display: &mut Compositor) {
     display.blit(0+x, 0+y, 3, 6, &output_digit(number / 10));
     display.blit(4+x, 0+y, 3, 6, &output_digit(number % 10));
 }
+pub fn write_num_4_digits(number: i16, x: usize, y: usize, display: &mut Compositor) {
+    // TODO: negative numbers
+    display.blit(0+x, 0+y, 3, 6,  &output_digit(((number % 10000) / 1000) as u8));
+    display.blit(4+x, 0+y, 3, 6,  &output_digit(((number % 1000) / 100) as u8));
+    display.blit(8+x, 0+y, 3, 6,  &output_digit(((number % 100) / 10) as u8));
+    display.blit(12+x, 0+y, 3, 6, &output_digit((number % 10) as u8));
+}
 
 pub fn write_char(char: u8, x: usize, y: usize, display: &mut Compositor) {
     display.blit(0+x, 0+y, 3, 6, &output_character(char))

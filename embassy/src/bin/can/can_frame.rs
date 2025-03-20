@@ -20,8 +20,8 @@ pub fn get_battery_current(frames: &ThreeVotolFrames) -> FixedPointOneTenth {
     ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16)
 }
 
-pub fn get_rpm(frames: &ThreeVotolFrames) -> u16 {
-    ((frames[2][0] as u16) << 8u16) + (frames[2][1] as u16)
+pub fn get_rpm(frames: &ThreeVotolFrames) -> i16 {
+    ((frames[2][0] as i16) << 8u16) + (frames[2][1] as i16)
 }
 
 // The two temperature values have +50C offset; this means
