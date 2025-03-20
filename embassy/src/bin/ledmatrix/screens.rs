@@ -41,7 +41,7 @@
             write_num(controller_temp, 14, 0, compositor);
         }
         ControllerValue::MotorTemp => {
-            write_num(controller_temp, 14, 0, compositor);
+            write_num(external_temp, 14, 0, compositor);
         }
         ControllerValue::Voltage => {
             write_fullscreen_float(battery_voltage, compositor);
