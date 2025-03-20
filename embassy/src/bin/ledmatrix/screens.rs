@@ -39,23 +39,18 @@
         }
         ControllerValue::ControllerTemp => {
             write_num(controller_temp, 14, 0, compositor);
+            write_char(b'*', 22, 0, compositor);
         }
         ControllerValue::MotorTemp => {
             write_num(external_temp, 14, 0, compositor);
+            write_char(b'*', 22, 0, compositor);
         }
         ControllerValue::Voltage => {
             write_fullscreen_float(battery_voltage, compositor);
         }
     }
 
-
     write_battery_bar(battery_voltage, compositor);
-    // todo handle input
-    //if button_a.is_high() {
-        //} else {
-        //write_num(external_temp, 14, 0, &mut display);
-        //}
-
     /*/
     if button_b.is_low() {
         if !pressed {
