@@ -1,15 +1,23 @@
 use crate::ledmatrix::digits::{output_character, output_digit};
 use crate::ledmatrix::compositor::{Compositor, WriteMode};
 
-// just to test
-pub fn write_fullscreen_float(voltage: u16, display: &mut Compositor) {
-    // fixed point in 0.1
-    let v = (voltage / 10) as u8;
-    let frac = (voltage % 10) as u8;
+fn chr(c: u8) -> u8 {
+    return c + b'0';
+}
 
-    display.blit(0, 0, 3, 6, &output_digit(v / 10));
-    display.blit(4, 0, 3, 6, &output_digit(v % 10));
-    display.blit(8, 1, 3, 6, &output_digit(frac));
+// just to test
+pub fn write_fullscreen_float(value: i16, display: &mut Compositor) {
+    // fixed point in 0.1
+    let v = (value / 10) as u8;
+    let frac = (value % 10) as u8;
+
+    if value < 0 {
+        write_char(b'-', 0, 0, display);
+    }
+
+    write_char(chr(v / 10), 4, 0, display);
+    write_char(chr(v % 10), 8, 0, display);
+    write_char(chr(frac), 12, 0, display);
 }
 
 pub fn write_num(number: u8, x: usize, y: usize, display: &mut Compositor) {
@@ -39,7 +47,7 @@ fn flip_byte(b: u8) -> u8 {
     (lookup[(b&0b1111) as usize] << 4) | lookup[(b>>4) as usize]
 }
 
-pub fn write_battery_bar(voltage: u16, display: &mut Compositor) {
+pub fn write_battery_bar(voltage: i16, display: &mut Compositor) {
     // assuming Vmax = 4.2V, Vmin = 2.75V
     // 20s means 55.0-84.0V swing.
 
