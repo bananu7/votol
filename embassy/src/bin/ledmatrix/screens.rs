@@ -31,10 +31,15 @@
     }
     */
 
+    let mode_char = get_mode_char(frames);
+    write_char(mode_char, 60, 0, compositor);
+}
+
+fn get_mode_char(frames: &ThreeVotolFrames) -> u8 {
     let status_byte = frames[2][6];
 
     // todo bits 5,6,7 - antitheft, sidestand, regen
-    let mode_char = if status_byte & 0b10000 != 0 { // brake
+    return if status_byte & 0b10000 != 0 { // brake
         b'b'
     } else if status_byte & 0b1000 != 0 {
         b'p'
@@ -53,8 +58,6 @@
             b'l'
         }
     };
-
-    write_char(mode_char, 60, 0, compositor);
 }
 
 pub fn fault_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {
