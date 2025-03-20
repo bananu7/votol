@@ -31,7 +31,30 @@
     }
     */
 
-    //write_char(c, 24, 0, &mut display);
+    let status_byte = frames[2][6];
+
+    // todo bits 5,6,7 - antitheft, sidestand, regen
+    let mode_char = if status_byte & 0b10000 != 0 { // brake
+        b'b'
+    } else if status_byte & 0b1000 != 0 {
+        b'p'
+    } else if status_byte & 0b100 != 0 {
+        b'r'
+    } else if status_byte & 0b010 != 0 {
+        if status_byte & 0b1 != 0 {
+            b's'
+        } else {
+            b'h'
+        }
+    } else {
+        if status_byte & 0b1 != 0 {
+            b'm'
+        } else {
+            b'l'
+        }
+    };
+
+    write_char(mode_char, 60, 0, compositor);
 }
 
 pub fn fault_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {
