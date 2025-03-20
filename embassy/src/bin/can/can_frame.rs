@@ -1,5 +1,5 @@
 pub type ThreeVotolFrames = [[u8; 8]; 3];
-type FixedPointOneTenth = u16;
+type FixedPointOneTenth = i16;
 
 pub enum ControllerState {
     IDLE, // 0
@@ -12,12 +12,16 @@ pub enum ControllerState {
     FAULT, // 7
 }
 
+pub fn combine_two_bytes_into_i16(a: u8, b: u8) -> i16 {
+    ((a as i16) << 8u16) + (b as i16)
+}
+
 pub fn get_battery_voltage(frames: &ThreeVotolFrames) -> FixedPointOneTenth {
-    ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16)
+    combine_two_bytes_into_i16(frames[0][7], frames[1][0])
 }
 
 pub fn get_battery_current(frames: &ThreeVotolFrames) -> FixedPointOneTenth {
-    ((frames[0][7] as u16) << 8u16) + (frames[1][0] as u16)
+    combine_two_bytes_into_i16(frames[1][1], frames[1][2])
 }
 
 pub fn get_rpm(frames: &ThreeVotolFrames) -> i16 {

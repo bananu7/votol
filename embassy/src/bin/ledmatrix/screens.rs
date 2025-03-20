@@ -1,6 +1,6 @@
  use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char};
  use crate::ledmatrix::compositor::Compositor;
- use crate::can::can_frame::{get_battery_voltage, get_controller_temp, get_external_temp, clamp_temp_to_0, get_rpm, ThreeVotolFrames};
+ use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_external_temp, get_rpm, ThreeVotolFrames};
 
  pub enum ControllerValue {
      Rpm,
@@ -17,6 +17,7 @@
     let controller_temp = clamp_temp_to_0(get_controller_temp(&frames));
     let external_temp = clamp_temp_to_0(get_external_temp(&frames));
     let rpm = get_rpm(&frames);
+    let current = get_battery_current(frames);
 
     // todo: state or prop?
     let central_value = ControllerValue::Speed;
@@ -32,6 +33,9 @@
             }
 
             write_num(speed, 10, 0, compositor);
+        }
+        ControllerValue::Current => {
+            write_num_4_digits(current as i16, 14, 0, compositor);
         }
         ControllerValue::ControllerTemp => {
             write_num(controller_temp, 14, 0, compositor);
