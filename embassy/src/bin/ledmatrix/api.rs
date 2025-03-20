@@ -17,6 +17,7 @@ pub fn write_fullscreen_float(value: i16, display: &mut Compositor) {
 
     write_char(chr(v / 10), 4, 0, display);
     write_char(chr(v % 10), 8, 0, display);
+    display.write_bit(11, 5, true);
     write_char(chr(frac), 12, 0, display);
 }
 
