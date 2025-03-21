@@ -15,10 +15,10 @@ pub fn write_fullscreen_float(value: i16, display: &mut Compositor) {
         write_char(b'-', 0, 0, display);
     }
 
-    write_char(chr(v / 10), 4, 0, display);
-    write_char(chr(v % 10), 8, 0, display);
-    display.write_bit(11, 5, true); // decimal dot
-    write_char(chr(frac), 12, 0, display);
+    write_char(chr(v / 10), 8, 0, display);
+    write_char(chr(v % 10), 12, 0, display);
+    display.write_bit(16, 5, true); // decimal dot
+    write_char(chr(frac), 18, 0, display);
 }
 
 pub fn write_num(number: u8, x: usize, y: usize, display: &mut Compositor) {
