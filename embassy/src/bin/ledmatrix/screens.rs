@@ -23,7 +23,7 @@
     let central_value = ControllerValue::Speed;
     match central_value {
         ControllerValue::Rpm => {
-            write_num_4_digits(get_rpm(&frames), 10, 0, compositor);
+            write_num_4_digits(get_rpm(&frames), 8, 0, compositor);
         }
         ControllerValue::Speed => {
             let mut speed = rpm_to_speed(rpm);
@@ -32,18 +32,18 @@
                 speed = 99;
             }
 
-            write_num(speed, 10, 0, compositor);
+            write_num(speed, 12, 0, compositor);
         }
         ControllerValue::Current => {
-            write_num_4_digits(current as i16, 14, 0, compositor);
+            write_num_4_digits(current as i16, 8, 0, compositor);
         }
         ControllerValue::ControllerTemp => {
-            write_num(controller_temp, 14, 0, compositor);
-            write_char(b'*', 22, 0, compositor);
+            write_num(controller_temp, 12, 0, compositor);
+            write_char(b'*', 24, 0, compositor);
         }
         ControllerValue::MotorTemp => {
-            write_num(external_temp, 14, 0, compositor);
-            write_char(b'*', 22, 0, compositor);
+            write_num(external_temp, 12, 0, compositor);
+            write_char(b'*', 24, 0, compositor);
         }
         ControllerValue::Voltage => {
             write_fullscreen_float(battery_voltage, compositor);
@@ -66,7 +66,7 @@
     */
 
     let mode_char = get_mode_char(frames);
-    write_char(mode_char, 60, 0, compositor);
+    write_char(mode_char, 28, 0, compositor);
 }
 
 fn rpm_to_speed(rpm: i16) -> u8 {
@@ -121,9 +121,13 @@ fn get_mode_char(frames: &ThreeVotolFrames) -> u8 {
 }
 
 pub fn fault_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {
-    write_char(b'e', 0, 0, compositor);
-    write_char(b'r', 4, 0, compositor);
+    write_char(b'c', 0, 0, compositor);
+    write_char(b't', 4, 0, compositor);
     write_char(b'r', 8, 0, compositor);
+    write_char(b'l', 12, 0, compositor);
+    write_char(b'e', 20, 0, compositor);
+    write_char(b'r', 24, 0, compositor);
+    write_char(b'r', 28, 0, compositor);
 }
 
 pub fn display_catastrophe_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {
