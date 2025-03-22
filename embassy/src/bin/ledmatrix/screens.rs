@@ -2,16 +2,27 @@ use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num
 use crate::ledmatrix::compositor::Compositor;
 use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_external_temp, get_rpm, ThreeVotolFrames};
 
+#[derive(Copy, Clone)]
 pub enum ControllerValue {
      Rpm,
      Speed,
      ControllerTemp,
      MotorTemp,
      Voltage,
-     Current
+     Current,
+     Power
 }
 
-pub fn ride_screen(frames: &ThreeVotolFrames, compositor: &mut Compositor) {
+pub fn next(v: ControllerValue) -> ControllerValue {
+    match v {
+        ControllerValue::Rpm => ControllerValue::Speed,
+        ControllerValue::Speed => ControllerValue::ControllerTemp,
+        ControllerValue::ControllerTemp => ControllerValue::Rpm, // todo
+        _ => ControllerValue::Rpm,
+    }
+}
+
+pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: ControllerValue, compositor: &mut Compositor) {
     let battery_voltage = get_battery_voltage(&frames);
 
     let controller_temp = clamp_temp_to_0(get_controller_temp(&frames));
@@ -20,8 +31,7 @@ pub fn ride_screen(frames: &ThreeVotolFrames, compositor: &mut Compositor) {
     let current = get_battery_current(frames);
 
     // todo: state or prop?
-    let central_value = ControllerValue::Voltage;
-    match central_value {
+    match value_to_show {
         ControllerValue::Rpm => {
             write_num_4_digits(get_rpm(&frames), 8, 0, compositor);
         }
@@ -48,22 +58,12 @@ pub fn ride_screen(frames: &ThreeVotolFrames, compositor: &mut Compositor) {
         ControllerValue::Voltage => {
             write_fullscreen_float(battery_voltage, compositor);
         }
+        ControllerValue::Power => {
+            write_num_4_digits(current * battery_voltage/10, 8, 0, compositor);
+        }
     }
 
     write_battery_bar(battery_voltage, compositor);
-    /*/
-    if button_b.is_low() {
-        if !pressed {
-            c += 1;
-            if c > b'z' {
-                c = b'a';
-            }
-            pressed = true;
-        }
-    } else {
-        pressed = false;
-    }
-    */
 
     let mode_char = get_mode_char(frames);
     write_char(mode_char, 28, 0, compositor);
