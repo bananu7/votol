@@ -106,7 +106,7 @@ async fn main(spawner: Spawner) {
         }
 
         match get_controller_state(&frames) {
-            Some(ControllerState::FAULT) => ride_screen(&frames, central_value, &mut compositor),//fault_screen(&frames, &mut compositor),
+            Some(ControllerState::FAULT) => fault_screen(&frames, &mut compositor),
             Some(_) => ride_screen(&frames, central_value, &mut compositor),
             None => display_catastrophe_screen(&frames, &mut compositor),
         }
