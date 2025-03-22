@@ -17,8 +17,11 @@ pub fn next(v: ControllerValue) -> ControllerValue {
     match v {
         ControllerValue::Rpm => ControllerValue::Speed,
         ControllerValue::Speed => ControllerValue::ControllerTemp,
-        ControllerValue::ControllerTemp => ControllerValue::Rpm, // todo
-        _ => ControllerValue::Rpm,
+        ControllerValue::ControllerTemp => ControllerValue::MotorTemp,
+        ControllerValue::MotorTemp => ControllerValue::Voltage,
+        ControllerValue::Voltage => ControllerValue::Current,
+        ControllerValue::Current => ControllerValue::Power,
+        ControllerValue::Power => ControllerValue::Rpm,
     }
 }
 
