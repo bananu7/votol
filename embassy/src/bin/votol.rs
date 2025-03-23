@@ -88,7 +88,7 @@ async fn main(spawner: Spawner) {
             rx.wait_not_empty().await;
             rx.try_read().unwrap()
         } else {
-            create_fake_votol_response(frame_counter)
+            create_fake_votol_response(frame_counter, 720, 24, 80, 3187)
         };
 
         handle_frame(env, "Wait", &mut frame_counter, &mut frames).await;
