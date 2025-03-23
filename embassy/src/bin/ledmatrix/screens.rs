@@ -3,29 +3,27 @@ use crate::ledmatrix::compositor::Compositor;
 use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_external_temp, get_rpm, ThreeVotolFrames};
 
 #[derive(Copy, Clone)]
-pub enum ControllerValue {
+pub enum DisplayValue {
      Rpm,
      Speed,
-     ControllerTemp,
-     MotorTemp,
+     ControllerMotorTemp,
      Voltage,
      Current,
      Power
 }
 
-pub fn next(v: ControllerValue) -> ControllerValue {
+pub fn next(v: DisplayValue) -> DisplayValue {
     match v {
-        ControllerValue::Rpm => ControllerValue::Speed,
-        ControllerValue::Speed => ControllerValue::ControllerTemp,
-        ControllerValue::ControllerTemp => ControllerValue::MotorTemp,
-        ControllerValue::MotorTemp => ControllerValue::Voltage,
-        ControllerValue::Voltage => ControllerValue::Current,
-        ControllerValue::Current => ControllerValue::Power,
-        ControllerValue::Power => ControllerValue::Rpm,
+        DisplayValue::Rpm => DisplayValue::Speed,
+        DisplayValue::Speed => DisplayValue::ControllerMotorTemp,
+        DisplayValue::ControllerMotorTemp => DisplayValue::Voltage,
+        DisplayValue::Voltage => DisplayValue::Current,
+        DisplayValue::Current => DisplayValue::Power,
+        DisplayValue::Power => DisplayValue::Rpm,
     }
 }
 
-pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: ControllerValue, compositor: &mut Compositor) {
+pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: DisplayValue, compositor: &mut Compositor) {
     let battery_voltage = get_battery_voltage(&frames);
 
     let controller_temp = clamp_temp_to_0(get_controller_temp(&frames));
@@ -35,10 +33,11 @@ pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: ControllerValue, co
 
     // todo: state or prop?
     match value_to_show {
-        ControllerValue::Rpm => {
-            write_num_4_digits(get_rpm(&frames), 8, 0, compositor);
+        DisplayValue::Rpm => {
+            write_num_4_digits(get_rpm(&frames), 0, 0, compositor);
+            write_char(b'%', 18, 0, compositor);
         }
-        ControllerValue::Speed => {
+        DisplayValue::Speed => {
             let mut speed = rpm_to_speed(rpm);
             // TODO speeds over 100
             if speed > 99 {
@@ -47,22 +46,22 @@ pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: ControllerValue, co
 
             write_num(speed, 12, 0, compositor);
         }
-        ControllerValue::Current => {
-            write_num_4_digits(current as i16, 8, 0, compositor);
+        DisplayValue::Current => {
+            write_num_4_digits(current as i16, 0, 0, compositor);
+            write_char(b'a', 18, 0, compositor);
         }
-        ControllerValue::ControllerTemp => {
-            write_num(controller_temp, 12, 0, compositor);
-            write_char(b'*', 20, 0, compositor);
+        DisplayValue::ControllerMotorTemp => {
+            write_num(controller_temp, 0, 0, compositor);
+            write_char(b'*', 8, 0, compositor);
+            write_num(external_temp, 14, 0, compositor);
+            write_char(b'*', 22, 0, compositor);
         }
-        ControllerValue::MotorTemp => {
-            write_num(external_temp, 12, 0, compositor);
-            write_char(b'*', 20, 0, compositor);
-        }
-        ControllerValue::Voltage => {
+        DisplayValue::Voltage => {
             write_fullscreen_float(battery_voltage, compositor);
         }
-        ControllerValue::Power => {
-            write_num_4_digits(current * battery_voltage/10, 8, 0, compositor);
+        DisplayValue::Power => {
+            write_num_4_digits(current * battery_voltage/10, 0, 0, compositor);
+            write_char(b'w', 18, 0, compositor);
         }
     }
 
@@ -112,13 +111,13 @@ fn get_mode_char(frames: &ThreeVotolFrames) -> u8 {
         if status_byte & 0b1 != 0 {
             b's'
         } else {
-            b'h'
+            b'3'
         }
     } else {
         if status_byte & 0b1 != 0 {
-            b'm'
+            b'2'
         } else {
-            b'l'
+            b'1'
         }
     };
 }

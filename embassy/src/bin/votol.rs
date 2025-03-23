@@ -20,7 +20,7 @@ use crate::ledmatrix::compositor::{Compositor, write_out};
 
 pub mod can;
 use crate::can::can_communication::{send_votol_msg, handle_frame, create_fake_votol_response};
-use crate::ledmatrix::screens::{ride_screen, fault_screen, display_catastrophe_screen, ControllerValue, next};
+use crate::ledmatrix::screens::{ride_screen, fault_screen, display_catastrophe_screen, DisplayValue, next};
 
 bind_interrupts!(struct Irqs {
     USB_LP_CAN1_RX0 => Rx0InterruptHandler<CAN>;
@@ -79,7 +79,7 @@ async fn main(spawner: Spawner) {
     spawner.spawn(send_votol_msg(tx)).unwrap();
     // END VOTOL --------------------------------------------
 
-    let mut central_value = ControllerValue::Voltage;
+    let mut central_value = DisplayValue::Voltage;
     let mut pressed = false;
 
     // This example shows using the wait_not_empty API before try read
