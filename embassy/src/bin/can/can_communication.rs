@@ -70,8 +70,8 @@ pub fn create_fake_votol_response(
     let bv_h: u8 = (battery_voltage >> 8) as u8;
     let bv_l: u8 = (battery_voltage & 0xFF) as u8;
 
-    let ct: u8 = (controller_temp + 50) as u8;
-    let et: u8 = (motor_temp + 50) as u8;
+    let ct: u8 = (controller_temp as i16 + 50) as u8;
+    let et: u8 = (motor_temp as i16 + 50) as u8;
 
     let rpm_h: u8 = (rpm >> 8) as u8;
     let rpm_l: u8 = (rpm & 0xFF) as u8;
