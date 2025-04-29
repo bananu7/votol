@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "bluepill")(type "KiCad")(uri "${KIPRJMOD}/bluepill/bluepill.kicad_sym")(options "")(descr ""))
+  (lib (name "components")(type "KiCad")(uri "${KIPRJMOD}/components/components.kicad_sym")(options "")(descr ""))
+)
