@@ -37,7 +37,7 @@ async fn main(spawner: Spawner) {
     let cs = Output::new(p.PB12, Level::High, Speed::VeryHigh);
     let sck = Output::new(p.PB13, Level::High, Speed::VeryHigh);
     let data = Output::new(p.PB15, Level::High, Speed::VeryHigh);
-    let mut display = setup_display(cs, sck, data);
+    let mut display = setup_display(cs, sck, data).unwrap();
     // END DISPLAY -------------------
 
 
