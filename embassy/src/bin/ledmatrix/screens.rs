@@ -1,6 +1,6 @@
-use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char};
+use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char, write_string};
 use crate::ledmatrix::compositor::Compositor;
-use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_external_temp, get_rpm, ThreeVotolFrames};
+use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_controller_error, get_external_temp, get_rpm, ThreeVotolFrames, ControllerError};
 
 #[derive(Copy, Clone)]
 pub enum DisplayValue {
@@ -122,14 +122,47 @@ fn get_mode_char(frames: &ThreeVotolFrames) -> u8 {
     };
 }
 
-pub fn fault_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {
-    write_char(b'c', 0, 0, compositor);
-    write_char(b't', 4, 0, compositor);
-    write_char(b'r', 8, 0, compositor);
-    write_char(b'l', 12, 0, compositor);
-    write_char(b'e', 20, 0, compositor);
-    write_char(b'r', 24, 0, compositor);
-    write_char(b'r', 28, 0, compositor);
+/// Converts a ControllerError to a descriptive string
+pub fn error_to_string(error: &ControllerError) -> &'static str {
+    match error {
+        ControllerError::EBrakeOn => "Emergency Brake On",
+        ControllerError::OverCurrent => "Hardware Overcurrent",
+        ControllerError::UnderVoltage => "Low Battery Voltage",
+        ControllerError::HallError => "Hall Sensor Error",
+        ControllerError::OverVoltage => "High Battery Voltage",
+        ControllerError::McuError => "Mcu Error",
+        ControllerError::MotorBlock => "Motor Block Error",
+        ControllerError::FootplateErr => "Throttle Error",
+        ControllerError::SpeedControl => "Runaway Error",
+        ControllerError::WritingEeprom => "EEPROM Writing",
+        ControllerError::StartUpFailure => "Startup Failure",
+        ControllerError::Overheat => "Controller Overheat",
+        ControllerError::OverCurrent1 => "Software Overcurrent",
+        ControllerError::AcceleratePadalErr => "Throttle Failure",
+        ControllerError::Ics1Err => "Current Sensor 1 Error",
+        ControllerError::Ics2Err => "Current Sensor 2 Error",
+        ControllerError::BreakErr => "Brake Failure",
+        ControllerError::HallSelError => "Hall Sensor Error",
+        ControllerError::MosfetDriverFault => "Driver Failure",
+        ControllerError::MosfetHighShort => "Mosfet High Short",
+        ControllerError::PhaseOpen => "Phase Wire Open",
+        ControllerError::PhaseShort => "Phase Wire Short",
+        ControllerError::McuChipError => "Controller Failure",
+        ControllerError::PreChargeError => "Pre-charge Failure",
+        ControllerError::MotorOverheat => "Motor Overheat",
+        ControllerError::SocZeroError => "Battery Empty",
+    }
+}
+
+pub fn fault_screen(frames: &ThreeVotolFrames, compositor: &mut Compositor) {
+    if let Some(error) = get_controller_error(frames) {
+        let error_message = error_to_string(&error);
+        // Display the error message, up to 8 characters at a time
+        write_string(error_message, 0, 0, 0, 8, compositor);
+    } else {
+        // This is a weird case as we are in error state but the error field is empty.
+        write_string("Error", 0, 0, 0, 8, compositor);
+    }
 }
 
 pub fn display_catastrophe_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {

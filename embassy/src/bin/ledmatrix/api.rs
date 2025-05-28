@@ -37,6 +37,22 @@ pub fn write_char(char: u8, x: usize, y: usize, display: &mut Compositor) {
     display.blit(0+x, 0+y, 3, 6, &output_character(char))
 }
 
+/// Writes a string of characters starting at position (x, y)
+/// Can write a substring of the input string by specifying start_idx and max_len
+/// Useful for implementing scrolling text
+pub fn write_string(s: &str, x: usize, y: usize, start_idx: usize, max_len: usize, display: &mut Compositor) {
+    let bytes = s.as_bytes();
+    let end_idx = (start_idx + max_len).min(bytes.len());
+    
+    if start_idx >= bytes.len() {
+        return;
+    }
+    
+    for (i, &b) in bytes[start_idx..end_idx].iter().enumerate() {
+        write_char(b, x + i * 4, y, display);
+    }
+}
+
 // flips the bit in a byte the other way around, e.g.
 // 0b00000111 -> 0b11100000
 fn flip_byte(b: u8) -> u8 {
