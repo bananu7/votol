@@ -162,7 +162,7 @@ pub fn write_string_scrolling(message: &str, x: usize, y: usize, time_ms: u32, d
     if message.len() > display_width {
         // Change scroll position every 500ms
         let time_step = 500;
-        let scroll_position = ((time_ms / time_step) as usize) % (message.len());
+        let scroll_position = ((time_ms / time_step) as usize) % (message.len() + 2);
         let offset_position = ((time_ms / (time_step / 4)) as usize) % 4;
 
         // Handle the case where we're at the end of the message and need to wrap

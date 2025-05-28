@@ -7,6 +7,8 @@ use embassy_stm32::can::frame::{
     Envelope, Timestamp
 };
 
+use super::can_frame::ControllerState;
+
 #[embassy_executor::task]
 pub async fn send_votol_msg(mut tx: CanTx<'static>) {
     // from ES https://endless-sphere.com/sphere/threads/votol-em100-canbus-protocols.114159/
@@ -64,7 +66,8 @@ pub fn create_fake_votol_response(
     battery_voltage: u16,
     controller_temp: i8,
     motor_temp: i8,
-    rpm: i16
+    rpm: i16,
+    state: ControllerState,
 ) -> Envelope {
     // temporary
     let battery_current = 0;
@@ -86,10 +89,12 @@ pub fn create_fake_votol_response(
     let er_3: u8 = 0x00;
     let er_4: u8 = 0x84;
 
+    let sb = state.into();
+
     let votol_can_responses: [[u8; 8]; 3] = [
         [0x09,  0x55,  0xaa, 0xaa, 0x00, ba_h, ba_l, bv_h],
         [bv_l,  0x00,  0x01, 0x00, er_1, er_2, er_3, er_4],
-        [rpm_h, rpm_l,   ct,   et, 0x00, 0x00, 0x01, 0x07]
+        [rpm_h, rpm_l,   ct,   et, 0x00, 0x00, 0x01, sb]
     ];
 
     return Envelope {

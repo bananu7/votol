@@ -12,6 +12,39 @@ pub enum ControllerState {
     FAULT, // 7
 }
 
+impl Into<u8> for ControllerState {
+    fn into(self) -> u8 {
+        match self {
+            ControllerState::IDLE => 0,
+            ControllerState::INIT => 1,
+            ControllerState::START => 2,
+            ControllerState::RUN => 3,
+            ControllerState::STOP => 4,
+            ControllerState::BRAKE => 5,
+            ControllerState::WAIT => 6,
+            ControllerState::FAULT => 7,
+        }
+    }
+}
+
+impl TryFrom<u8> for ControllerState {
+    type Error = ();
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(ControllerState::IDLE),
+            1 => Ok(ControllerState::INIT),
+            2 => Ok(ControllerState::START),
+            3 => Ok(ControllerState::RUN),
+            4 => Ok(ControllerState::STOP),
+            5 => Ok(ControllerState::BRAKE),
+            6 => Ok(ControllerState::WAIT),
+            7 => Ok(ControllerState::FAULT),
+            _ => Err(()),
+        }
+    }
+}
+
 pub fn combine_two_bytes_into_i16(a: u8, b: u8) -> i16 {
     ((a as i16) << 8u16) + (b as i16)
 }
@@ -48,16 +81,9 @@ pub fn clamp_temp_to_0(temp: i16) -> u8 {
 }
 
 pub fn get_controller_state(frames: &ThreeVotolFrames) -> Option<ControllerState> {
-    return match frames[2][7] {
-        0 => Some(ControllerState::IDLE),
-        1 => Some(ControllerState::INIT),
-        2 => Some(ControllerState::START),
-        3 => Some(ControllerState::RUN),
-        4 => Some(ControllerState::STOP),
-        5 => Some(ControllerState::BRAKE),
-        6 => Some(ControllerState::WAIT),
-        7 => Some(ControllerState::FAULT),
-        _ => None,
+    return match ControllerState::try_from(frames[2][7]) {
+        Ok(state) => Some(state),
+        Err(_) => None,
     }
 }
 
