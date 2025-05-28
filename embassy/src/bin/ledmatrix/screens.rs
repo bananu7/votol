@@ -161,11 +161,16 @@ pub fn write_string_scrolling(message: &str, x: usize, y: usize, time_ms: u32, d
     // Only scroll if the message is longer than what fits on screen
     if message.len() > display_width {
         // Change scroll position every 500ms
-        let scroll_position = ((time_ms / 500) as usize) % (message.len() + 4);
+        let time_step = 500;
+        let scroll_position = ((time_ms / time_step) as usize) % (message.len());
+        let offset_position = ((time_ms / (time_step / 4)) as usize) % 4;
 
         // Handle the case where we're at the end of the message and need to wrap
         if scroll_position < message.len() {
             write_string(&message, x, y, scroll_position, display_width, compositor);
+            for _ in 0..offset_position {
+                compositor.shift_left();
+            }
         } else {
             // Just show the beginning when we're in the wrap-around transition
             write_string(message, x, y, 0, display_width, compositor);
