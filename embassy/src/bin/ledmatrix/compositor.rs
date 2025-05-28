@@ -57,6 +57,23 @@ impl Compositor {
             self.data[0][i] >>= 1;
         }
     }
+    pub fn shift_left(&mut self) {
+        for i in 0..8 {
+            self.data[0][i] <<= 1;
+            self.data[0][i] |= 0b1 & (self.data[1][i] >> 7);
+        }
+        for i in 0..8 {
+            self.data[1][i] <<= 1;
+            self.data[1][i] |= 0b1 & (self.data[2][i] >> 7);
+        }
+        for i in 0..8 {
+            self.data[2][i] <<= 1;
+            self.data[2][i] |= 0b1 & (self.data[3][i] >> 7);
+        }
+        for i in 0..8 {
+            self.data[3][i] <<= 1;
+        }
+    }
 
     pub fn write_bit(&mut self, x: usize, y: usize, value: bool) {
         let row: u8 = 1 << (7 - (x % 8));
