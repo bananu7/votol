@@ -166,11 +166,5 @@ pub fn fault_screen(frames: &ThreeVotolFrames, compositor: &mut Compositor) {
 }
 
 pub fn display_catastrophe_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {
-    write_char(b'd', 0, 0, compositor);
-    write_char(b'i', 4, 0, compositor);
-    write_char(b's', 8, 0, compositor);
-    write_char(b'p', 12, 0, compositor);
-    write_char(b'e', 20, 0, compositor);
-    write_char(b'r', 24, 0, compositor);
-    write_char(b'r', 28, 0, compositor);
+    write_string("display error", 0, 0, 0, 8, compositor);
 }

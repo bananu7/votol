@@ -34,13 +34,23 @@ pub fn write_num_4_digits(number: i16, x: usize, y: usize, display: &mut Composi
 }
 
 pub fn write_char(char: u8, x: usize, y: usize, display: &mut Compositor) {
-    display.blit(0+x, 0+y, 3, 6, &output_character(char))
+    // Convert uppercase to lowercase if it's an uppercase letter
+    let lowercase_char = if char >= b'A' && char <= b'Z' {
+        char + 32 // ASCII difference between uppercase and lowercase
+    } else {
+        char
+    };
+    display.blit(0+x, 0+y, 3, 6, &output_character(lowercase_char))
 }
 
 /// Writes a string of characters starting at position (x, y)
 /// Can write a substring of the input string by specifying start_idx and max_len
 /// Useful for implementing scrolling text
 pub fn write_string(s: &str, x: usize, y: usize, start_idx: usize, max_len: usize, display: &mut Compositor) {
+    if s.is_empty() {
+        return;
+    }
+    
     let bytes = s.as_bytes();
     let end_idx = (start_idx + max_len).min(bytes.len());
     
