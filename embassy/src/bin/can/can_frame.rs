@@ -60,3 +60,82 @@ pub fn get_controller_state(frames: &ThreeVotolFrames) -> Option<ControllerState
         _ => None,
     }
 }
+
+pub enum ControllerError {
+    EBrakeOn,               // 0x001 Brake
+    OverCurrent,            // 0x02 Hardware overcurrent
+    UnderVoltage,           // 0x04 Under voltage
+    HallError,              // 0x08 Hall error
+    OverVoltage,            // 0x10 Over voltage
+    McuError,               // 0x20 Controller error
+    MotorBlock,             // 0x40 Motor block error
+    FootplateErr,           // 0x80 Throttle error
+    SpeedControl,           // 0x100 Run away
+    WritingEeprom,          // 0x200 EEROM writing
+    StartUpFailure,         // 0x800 Quality inspection failure
+    Overheat,               // 0x1000 Controller overheat
+    OverCurrent1,           // 0x2000 Software overcurrent
+    AcceleratePadalErr,     // 0x4000 Throttle failure
+    Ics1Err,                // 0x8000 Current sensor error 1
+    Ics2Err,                // 0x10000 Current sensor error 2
+    BreakErr,               // 0x20000 Brake failure
+    HallSelError,           // 0x40000 Hall error
+    MosfetDriverFault,      // 0x80000 Driver failure
+    MosfetHighShort,        // 0x100000 MOS tube short circuit
+    PhaseOpen,              // 0x200000 Phase wire connection failure
+    PhaseShort,             // 0x400000 phase wire short circuit
+    McuChipError,           // 0x800000 Controller failure
+    PreChargeError,         // 0x1000000 Pre-charge failure
+    MotorOverheat,          // 0x8000000 Motor overheat
+    SocZeroError            // 0x80000000 SOC 0 error
+}
+
+pub fn get_controller_error(frames: &ThreeVotolFrames) -> Option<ControllerError> {
+    // Error bits are stored in 4 bytes at indices 10-13 in the overall message
+    // Frame 1, bytes 2-5 correspond to these indices
+    let error_byte1 = frames[1][2];
+    let error_byte2 = frames[1][3];
+    let error_byte3 = frames[1][4];
+    let error_byte4 = frames[1][5];
+
+    // Combine the 4 bytes into a 32-bit error code
+    let error_code: u32 = (error_byte4 as u32) << 24 |
+                          (error_byte3 as u32) << 16 |
+                          (error_byte2 as u32) << 8 |
+                          (error_byte1 as u32);
+
+    // No errors if error_code is 0
+    if error_code == 0 {
+        return None;
+    }
+
+    // Return the first error code basing on lowest-error first.
+    if (error_code & 0x001) != 0 { return Some(ControllerError::EBrakeOn); }
+    if (error_code & 0x002) != 0 { return Some(ControllerError::OverCurrent); }
+    if (error_code & 0x004) != 0 { return Some(ControllerError::UnderVoltage); }
+    if (error_code & 0x008) != 0 { return Some(ControllerError::HallError); }
+    if (error_code & 0x010) != 0 { return Some(ControllerError::OverVoltage); }
+    if (error_code & 0x020) != 0 { return Some(ControllerError::McuError); }
+    if (error_code & 0x040) != 0 { return Some(ControllerError::MotorBlock); }
+    if (error_code & 0x080) != 0 { return Some(ControllerError::FootplateErr); }
+    if (error_code & 0x100) != 0 { return Some(ControllerError::SpeedControl); }
+    if (error_code & 0x200) != 0 { return Some(ControllerError::WritingEeprom); }
+    if (error_code & 0x800) != 0 { return Some(ControllerError::StartUpFailure); }
+    if (error_code & 0x1000) != 0 { return Some(ControllerError::Overheat); }
+    if (error_code & 0x2000) != 0 { return Some(ControllerError::OverCurrent1); }
+    if (error_code & 0x4000) != 0 { return Some(ControllerError::AcceleratePadalErr); }
+    if (error_code & 0x8000) != 0 { return Some(ControllerError::Ics1Err); }
+    if (error_code & 0x10000) != 0 { return Some(ControllerError::Ics2Err); }
+    if (error_code & 0x20000) != 0 { return Some(ControllerError::BreakErr); }
+    if (error_code & 0x40000) != 0 { return Some(ControllerError::HallSelError); }
+    if (error_code & 0x80000) != 0 { return Some(ControllerError::MosfetDriverFault); }
+    if (error_code & 0x100000) != 0 { return Some(ControllerError::MosfetHighShort); }
+    if (error_code & 0x200000) != 0 { return Some(ControllerError::PhaseOpen); }
+    if (error_code & 0x400000) != 0 { return Some(ControllerError::PhaseShort); }
+    if (error_code & 0x800000) != 0 { return Some(ControllerError::McuChipError); }
+    if (error_code & 0x1000000) != 0 { return Some(ControllerError::PreChargeError); }
+    if (error_code & 0x8000000) != 0 { return Some(ControllerError::MotorOverheat); }
+    if (error_code & 0x80000000) != 0 { return Some(ControllerError::SocZeroError); }
+
+    None
+}
