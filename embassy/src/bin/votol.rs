@@ -13,7 +13,7 @@ use embassy_stm32::{bind_interrupts, Config};
 use {defmt_rtt as _, panic_probe as _};
 
 use embassy_stm32::gpio::{Speed, Level, Output, Input, Pull};
-use embassy_time::{Timer, Instant};
+use embassy_time::{Instant};
 
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;

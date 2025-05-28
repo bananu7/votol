@@ -1,8 +1,6 @@
 use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char, write_string};
 use crate::ledmatrix::compositor::Compositor;
 use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_controller_error, get_external_temp, get_rpm, ThreeVotolFrames, ControllerError};
-use alloc::format;
-use alloc::string::String;
 
 #[derive(Copy, Clone)]
 pub enum DisplayValue {
@@ -165,12 +163,9 @@ pub fn write_string_scrolling(message: &str, x: usize, y: usize, time_ms: u32, d
         // Change scroll position every 500ms
         let scroll_position = ((time_ms / 500) as usize) % (message.len() + 4);
 
-        // Add 4 spaces at the end to create a pause between scrolling cycles
-        let scroll_message = format!("{}    ", message);
-
         // Handle the case where we're at the end of the message and need to wrap
-        if scroll_position < scroll_message.len() {
-            write_string(&scroll_message, x, y, scroll_position, display_width, compositor);
+        if scroll_position < message.len() {
+            write_string(&message, x, y, scroll_position, display_width, compositor);
         } else {
             // Just show the beginning when we're in the wrap-around transition
             write_string(message, x, y, 0, display_width, compositor);
