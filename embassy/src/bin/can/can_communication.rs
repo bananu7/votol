@@ -27,7 +27,7 @@ pub async fn send_votol_msg(mut tx: CanTx<'static>) {
     }
 }
 
-pub async fn handle_frame(env: Envelope, read_mode: &str, counter: &mut usize, frames: &mut [[u8; 8]; 3]) {
+pub async fn handle_frame(env: Envelope, counter: &mut usize, frames: &mut [[u8; 8]; 3]) {
     match env.frame.id() {
         Id::Extended(_id) => {
             /*defmt::println!(
@@ -40,8 +40,7 @@ pub async fn handle_frame(env: Envelope, read_mode: &str, counter: &mut usize, f
         Id::Standard(id) => {
             if *id == StandardId::new(1022).unwrap() {
                 defmt::println!(
-                    "{} Standard Frame id={:x} {:02x}",
-                    read_mode,
+                    "Standard Frame id={:x} {:02x}",
                     id.as_raw(),
                     env.frame.data()
                 );

@@ -94,7 +94,7 @@ async fn main(spawner: Spawner) {
             create_fake_votol_response(frame_counter, 720, 24, 80, 3187)
         };
 
-        handle_frame(env, "Wait", &mut frame_counter, &mut frames).await;
+        handle_frame(env, &mut frame_counter, &mut frames).await;
 
         compositor.clear();
 
