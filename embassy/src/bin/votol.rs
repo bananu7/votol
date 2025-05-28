@@ -13,6 +13,7 @@ use embassy_stm32::{bind_interrupts, Config};
 use {defmt_rtt as _, panic_probe as _};
 
 use embassy_stm32::gpio::{Speed, Level, Output, Input, Pull};
+use embassy_time::{Timer, Instant};
 
 pub mod ledmatrix;
 use crate::ledmatrix::setup::setup_display;
@@ -67,6 +68,9 @@ async fn main(spawner: Spawner) {
     let button_b = Input::new(p.PB11, Pull::Up);
     // END BUTTONS
 
+    // Set up a reference time for the scrolling text
+    let start_time = Instant::now();
+
     // VOTOL --------------------------------------------
     let mut frames: [[u8; 8]; 3] = [
         [0,0,0,0,0,0,0,0],
@@ -75,7 +79,6 @@ async fn main(spawner: Spawner) {
     ];
     let mut frame_counter: usize = 0;
     let mut compositor = Compositor::new();
-
     spawner.spawn(send_votol_msg(tx)).unwrap();
     // END VOTOL --------------------------------------------
 
@@ -105,10 +108,13 @@ async fn main(spawner: Spawner) {
             pressed = false;
         }
 
+        // Get current time in milliseconds since startup
+        let current_time_ms = start_time.elapsed().as_millis() as u32;
+
         match get_controller_state(&frames) {
-            Some(ControllerState::FAULT) => fault_screen(&frames, &mut compositor),
-            Some(_) => ride_screen(&frames, central_value, &mut compositor),
-            None => display_catastrophe_screen(&frames, &mut compositor),
+            Some(ControllerState::FAULT) => fault_screen(&frames, &mut compositor, current_time_ms),
+            Some(_) => ride_screen(&frames, central_value, &mut compositor, current_time_ms),
+            None => display_catastrophe_screen(&frames, &mut compositor, current_time_ms),
         }
 
         write_out(&compositor, &mut display);
