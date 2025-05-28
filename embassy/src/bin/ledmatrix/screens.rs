@@ -128,13 +128,13 @@ pub fn error_to_string(error: &ControllerError) -> &'static str {
         ControllerError::EBrakeOn => "Emergency Brake On",
         ControllerError::OverCurrent => "Hardware Overcurrent",
         ControllerError::UnderVoltage => "Low Battery Voltage",
-        ControllerError::HallError => "Hall Sensor Error",
+        ControllerError::ThrottleHallError => "Throttle Hall Error",
         ControllerError::OverVoltage => "High Battery Voltage",
         ControllerError::McuError => "Mcu Error",
-        ControllerError::MotorBlock => "Motor Block Error",
+        ControllerError::MotorBlock => "Motor Blocked",
         ControllerError::FootplateErr => "Throttle Error",
         ControllerError::SpeedControl => "Runaway Error",
-        ControllerError::WritingEeprom => "EEPROM Writing",
+        ControllerError::WritingEeprom => "Program Upload Error",
         ControllerError::StartUpFailure => "Startup Failure",
         ControllerError::Overheat => "Controller Overheat",
         ControllerError::OverCurrent1 => "Software Overcurrent",
@@ -150,7 +150,7 @@ pub fn error_to_string(error: &ControllerError) -> &'static str {
         ControllerError::McuChipError => "Controller Failure",
         ControllerError::PreChargeError => "Pre-charge Failure",
         ControllerError::MotorOverheat => "Motor Overheat",
-        ControllerError::SocZeroError => "Battery Empty",
+        ControllerError::SocZeroError => "SOC Zero Error",
     }
 }
 

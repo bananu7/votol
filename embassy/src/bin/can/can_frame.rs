@@ -65,7 +65,7 @@ pub enum ControllerError {
     EBrakeOn,               // 0x001 Brake
     OverCurrent,            // 0x02 Hardware overcurrent
     UnderVoltage,           // 0x04 Under voltage
-    HallError,              // 0x08 Hall error
+    ThrottleHallError,      // 0x08 Throttle Hall error (this is often labeled just "Hall Error")
     OverVoltage,            // 0x10 Over voltage
     McuError,               // 0x20 Controller error
     MotorBlock,             // 0x40 Motor block error
@@ -99,10 +99,10 @@ pub fn get_controller_error(frames: &ThreeVotolFrames) -> Option<ControllerError
     let error_byte4 = frames[1][7];
 
     // Combine the 4 bytes into a 32-bit error code
-    let error_code: u32 = (error_byte4 as u32) << 24 |
-                          (error_byte3 as u32) << 16 |
-                          (error_byte2 as u32) << 8 |
-                          (error_byte1 as u32);
+    let error_code: u32 = (error_byte1 as u32) << 24 |
+                          (error_byte2 as u32) << 16 |
+                          (error_byte3 as u32) << 8 |
+                          (error_byte4 as u32);
 
     // No errors if error_code is 0
     if error_code == 0 {
@@ -113,7 +113,7 @@ pub fn get_controller_error(frames: &ThreeVotolFrames) -> Option<ControllerError
     if (error_code & 0x001) != 0 { return Some(ControllerError::EBrakeOn); }
     if (error_code & 0x002) != 0 { return Some(ControllerError::OverCurrent); }
     if (error_code & 0x004) != 0 { return Some(ControllerError::UnderVoltage); }
-    if (error_code & 0x008) != 0 { return Some(ControllerError::HallError); }
+    if (error_code & 0x008) != 0 { return Some(ControllerError::ThrottleHallError); }
     if (error_code & 0x010) != 0 { return Some(ControllerError::OverVoltage); }
     if (error_code & 0x020) != 0 { return Some(ControllerError::McuError); }
     if (error_code & 0x040) != 0 { return Some(ControllerError::MotorBlock); }
