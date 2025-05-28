@@ -66,6 +66,11 @@ pub fn create_fake_votol_response(
     motor_temp: i8,
     rpm: i16
 ) -> Envelope {
+    // temporary
+    let battery_current = 0;
+    let ba_h: u8 = (battery_current >> 8) as u8;
+    let ba_l: u8 = (battery_current & 0xFF) as u8;
+
     let bv_h: u8 = (battery_voltage >> 8) as u8;
     let bv_l: u8 = (battery_voltage & 0xFF) as u8;
 
@@ -75,9 +80,15 @@ pub fn create_fake_votol_response(
     let rpm_h: u8 = (rpm >> 8) as u8;
     let rpm_l: u8 = (rpm & 0xFF) as u8;
 
+    // specific error state
+    let er_1: u8 = 0x00;
+    let er_2: u8 = 0x00;
+    let er_3: u8 = 0x00;
+    let er_4: u8 = 0x84;
+
     let votol_can_responses: [[u8; 8]; 3] = [
-        [0x09,  0x55,  0xaa, 0xaa, 0x00, 0x00, 0x00, bv_h],
-        [bv_l,  0x00,  0x01, 0x00, 0x00, 0x00, 0x00, 0x84],
+        [0x09,  0x55,  0xaa, 0xaa, 0x00, ba_h, ba_l, bv_h],
+        [bv_l,  0x00,  0x01, 0x00, er_1, er_2, er_3, er_4],
         [rpm_h, rpm_l,   ct,   et, 0x00, 0x00, 0x01, 0x07]
     ];
 

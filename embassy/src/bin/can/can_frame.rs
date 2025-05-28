@@ -93,10 +93,10 @@ pub enum ControllerError {
 pub fn get_controller_error(frames: &ThreeVotolFrames) -> Option<ControllerError> {
     // Error bits are stored in 4 bytes at indices 10-13 in the overall message
     // Frame 1, bytes 2-5 correspond to these indices
-    let error_byte1 = frames[1][2];
-    let error_byte2 = frames[1][3];
-    let error_byte3 = frames[1][4];
-    let error_byte4 = frames[1][5];
+    let error_byte1 = frames[1][4];
+    let error_byte2 = frames[1][5];
+    let error_byte3 = frames[1][6];
+    let error_byte4 = frames[1][7];
 
     // Combine the 4 bytes into a 32-bit error code
     let error_code: u32 = (error_byte4 as u32) << 24 |
