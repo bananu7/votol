@@ -1,6 +1,6 @@
-use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char};
+use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char, write_string};
 use crate::ledmatrix::compositor::Compositor;
-use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_external_temp, get_rpm, ThreeVotolFrames};
+use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_controller_error, get_external_temp, get_rpm, ThreeVotolFrames, ControllerError};
 
 #[derive(Copy, Clone)]
 pub enum DisplayValue {
@@ -23,7 +23,7 @@ pub fn next(v: DisplayValue) -> DisplayValue {
     }
 }
 
-pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: DisplayValue, compositor: &mut Compositor) {
+pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: DisplayValue, compositor: &mut Compositor, _time_ms: u32) {
     let battery_voltage = get_battery_voltage(&frames);
 
     let controller_temp = clamp_temp_to_0(get_controller_temp(&frames));
@@ -122,22 +122,76 @@ fn get_mode_char(frames: &ThreeVotolFrames) -> u8 {
     };
 }
 
-pub fn fault_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {
-    write_char(b'c', 0, 0, compositor);
-    write_char(b't', 4, 0, compositor);
-    write_char(b'r', 8, 0, compositor);
-    write_char(b'l', 12, 0, compositor);
-    write_char(b'e', 20, 0, compositor);
-    write_char(b'r', 24, 0, compositor);
-    write_char(b'r', 28, 0, compositor);
+/// Converts a ControllerError to a descriptive string
+pub fn error_to_string(error: &ControllerError) -> &'static str {
+    match error {
+        ControllerError::EBrakeOn => "Emergency Brake On",
+        ControllerError::OverCurrent => "Hardware Overcurrent",
+        ControllerError::UnderVoltage => "Low Battery Voltage",
+        ControllerError::ThrottleHallError => "Throttle Hall Error",
+        ControllerError::OverVoltage => "High Battery Voltage",
+        ControllerError::McuError => "Mcu Error",
+        ControllerError::MotorBlock => "Motor Blocked",
+        ControllerError::FootplateErr => "Throttle Error",
+        ControllerError::SpeedControl => "Runaway Error",
+        ControllerError::WritingEeprom => "Program Upload Error",
+        ControllerError::StartUpFailure => "Startup Failure",
+        ControllerError::Overheat => "Controller Overheat",
+        ControllerError::OverCurrent1 => "Software Overcurrent",
+        ControllerError::AcceleratePadalErr => "Throttle Failure",
+        ControllerError::Ics1Err => "Current Sensor 1 Error",
+        ControllerError::Ics2Err => "Current Sensor 2 Error",
+        ControllerError::BreakErr => "Brake Failure",
+        ControllerError::HallSelError => "Hall Sensor Error",
+        ControllerError::MosfetDriverFault => "Driver Failure",
+        ControllerError::MosfetHighShort => "Mosfet High Short",
+        ControllerError::PhaseOpen => "Phase Wire Open",
+        ControllerError::PhaseShort => "Phase Wire Short",
+        ControllerError::McuChipError => "Controller Failure",
+        ControllerError::PreChargeError => "Pre-charge Failure",
+        ControllerError::MotorOverheat => "Motor Overheat",
+        ControllerError::SocZeroError => "SOC Zero Error",
+    }
 }
 
-pub fn display_catastrophe_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor) {
-    write_char(b'd', 0, 0, compositor);
-    write_char(b'i', 4, 0, compositor);
-    write_char(b's', 8, 0, compositor);
-    write_char(b'p', 12, 0, compositor);
-    write_char(b'e', 20, 0, compositor);
-    write_char(b'r', 24, 0, compositor);
-    write_char(b'r', 28, 0, compositor);
+/// Helper function to write a scrolling string on the display
+/// If the string is longer than the display width, it will scroll
+/// If not, it will be displayed statically
+pub fn write_string_scrolling(message: &str, x: usize, y: usize, time_ms: u32, display_width: usize, compositor: &mut Compositor) {
+    // Only scroll if the message is longer than what fits on screen
+    if message.len() > display_width {
+        // Change scroll position every 500ms
+        let time_step = 500;
+        let scroll_position = ((time_ms / time_step) as usize) % (message.len() + 2);
+        let offset_position = ((time_ms / (time_step / 4)) as usize) % 4;
+
+        // Handle the case where we're at the end of the message and need to wrap
+        if scroll_position < message.len() {
+            write_string(&message, x, y, scroll_position, display_width, compositor);
+            for _ in 0..offset_position {
+                compositor.shift_left();
+            }
+        } else {
+            // Just show the beginning when we're in the wrap-around transition
+            write_string(message, x, y, 0, display_width, compositor);
+        }
+    } else {
+        // Message fits, no need to scroll
+        write_string(message, x, y, 0, display_width, compositor);
+    }
+}
+
+pub fn fault_screen(frames: &ThreeVotolFrames, compositor: &mut Compositor, time_ms: u32) {
+    if let Some(error) = get_controller_error(frames) {
+        let error_message = error_to_string(&error);
+        write_string_scrolling(error_message, 0, 0, time_ms, 8, compositor);
+    } else {
+        // This is a weird case as we are in error state but the error field is empty.
+        write_string("Error", 0, 0, 0, 8, compositor);
+    }
+}
+
+pub fn display_catastrophe_screen(_frames: &ThreeVotolFrames, compositor: &mut Compositor, time_ms: u32) {
+    let message = "display error";
+    write_string_scrolling(message, 0, 0, time_ms, 8, compositor);
 }
