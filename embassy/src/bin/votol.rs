@@ -64,8 +64,8 @@ async fn main(spawner: Spawner) {
     // END CAN -----------------------
 
     // BUTTONS
-    let button_a = Input::new(p.PB10, Pull::Up);
-    let button_b = Input::new(p.PB11, Pull::Up);
+    let button_a = Input::new(p.PB8, Pull::Up);
+    let button_b = Input::new(p.PB9, Pull::Up);
     // END BUTTONS
 
     // Set up a reference time for the scrolling text
@@ -85,13 +85,15 @@ async fn main(spawner: Spawner) {
     let mut central_value = DisplayValue::Voltage;
     let mut pressed = false;
 
+    display_catastrophe_screen(&frames, &mut compositor, 0);
+
     // This example shows using the wait_not_empty API before try read
     loop {
         let env = if false {
             rx.wait_not_empty().await;
             rx.try_read().unwrap()
         } else {
-            create_fake_votol_response(frame_counter, 720, 24, 80, 3187, ControllerState::FAULT)
+            create_fake_votol_response(frame_counter, 720, 24, 80, 3187, ControllerState::IDLE)
         };
 
         handle_frame(env, &mut frame_counter, &mut frames).await;
