@@ -1,4 +1,4 @@
-use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char, write_string};
+use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char, write_string, write_num_decimal_1k};
 use crate::ledmatrix::compositor::Compositor;
 use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_controller_error, get_external_temp, get_rpm, ThreeVotolFrames, ControllerError};
 
@@ -60,7 +60,7 @@ pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: DisplayValue, compo
             write_fullscreen_float(battery_voltage, compositor);
         }
         DisplayValue::Power => {
-            write_num_4_digits(current * battery_voltage/10, 0, 0, compositor);
+            write_num_decimal_1k(current * battery_voltage/10, 0, 0, compositor);
             write_char(b'w', 18, 0, compositor);
         }
     }

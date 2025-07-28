@@ -26,11 +26,22 @@ pub fn write_num(number: u8, x: usize, y: usize, display: &mut Compositor) {
     display.blit(4+x, 0+y, 3, 6, &output_digit(number % 10));
 }
 pub fn write_num_4_digits(number: i16, x: usize, y: usize, display: &mut Compositor) {
-    // TODO: negative numbers
-    display.blit(0+x, 0+y, 3, 6,  &output_digit(((number % 10000) / 1000) as u8));
-    display.blit(4+x, 0+y, 3, 6,  &output_digit(((number % 1000) / 100) as u8));
-    display.blit(8+x, 0+y, 3, 6,  &output_digit(((number % 100) / 10) as u8));
-    display.blit(12+x, 0+y, 3, 6, &output_digit((number % 10) as u8));
+    let abs_number = number.abs();
+    display.blit(0+x, 0+y, 3, 6,  &output_digit(((abs_number % 10000) / 1000) as u8));
+    display.blit(4+x, 0+y, 3, 6,  &output_digit(((abs_number % 1000) / 100) as u8));
+    display.blit(8+x, 0+y, 3, 6,  &output_digit(((abs_number % 100) / 10) as u8));
+    display.blit(12+x, 0+y, 3, 6, &output_digit((abs_number % 10) as u8));
+}
+
+// take a 16-bit signed integer and write it as a decimal divided by 1000
+pub fn write_num_decimal_1k(number: i16, x: usize, y: usize, display: &mut Compositor) {
+    if number < 0 {
+        display.blit(0+x, 0+y, 3, 6, &output_character(b'-'));
+    }
+    let abs_number = number.abs();
+    display.blit(4+x, 0+y, 3, 6,  &output_digit(((abs_number % 10000) / 1000) as u8));
+    display.blit(8+x, 0+y, 3, 6,  &output_digit(((abs_number % 1000) / 100) as u8));
+    display.blit(12+x, 0+y, 3, 6,  &output_character(b'.'));
 }
 
 pub fn write_char(char: u8, x: usize, y: usize, display: &mut Compositor) {
@@ -50,14 +61,14 @@ pub fn write_string(s: &str, x: usize, y: usize, start_idx: usize, max_len: usiz
     if s.is_empty() {
         return;
     }
-    
+
     let bytes = s.as_bytes();
     let end_idx = (start_idx + max_len).min(bytes.len());
-    
+
     if start_idx >= bytes.len() {
         return;
     }
-    
+
     for (i, &b) in bytes[start_idx..end_idx].iter().enumerate() {
         write_char(b, x + i * 4, y, display);
     }

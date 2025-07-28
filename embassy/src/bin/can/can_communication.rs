@@ -64,13 +64,12 @@ pub async fn handle_frame(env: Envelope, counter: &mut usize, frames: &mut [[u8;
 pub fn create_fake_votol_response(
     id: usize,
     battery_voltage: u16,
+    battery_current: i16,
     controller_temp: i8,
     motor_temp: i8,
     rpm: i16,
     state: ControllerState,
 ) -> Envelope {
-    // temporary
-    let battery_current = 0;
     let ba_h: u8 = (battery_current >> 8) as u8;
     let ba_l: u8 = (battery_current & 0xFF) as u8;
 
@@ -89,11 +88,11 @@ pub fn create_fake_votol_response(
     let er_3: u8 = 0x00;
     let er_4: u8 = 0x84;
 
-    let sb = state.into();
+    let sb = state.try_into().unwrap();
 
     let votol_can_responses: [[u8; 8]; 3] = [
-        [0x09,  0x55,  0xaa, 0xaa, 0x00, ba_h, ba_l, bv_h],
-        [bv_l,  0x00,  0x01, 0x00, er_1, er_2, er_3, er_4],
+        [0x09,  0x55,  0xaa, 0xaa, 0x00, 0x00, 0x00, bv_h],
+        [bv_l,  ba_h,  ba_l, 0x00, er_1, er_2, er_3, er_4],
         [rpm_h, rpm_l,   ct,   et, 0x00, 0x00, 0x01, sb]
     ];
 
