@@ -89,11 +89,11 @@ async fn main(spawner: Spawner) {
 
     // This example shows using the wait_not_empty API before try read
     loop {
-        let env = if false {
+        let env = if true {
             rx.wait_not_empty().await;
             rx.try_read().unwrap()
         } else {
-            create_fake_votol_response(frame_counter, 840, 250, 24, 80, 8000, ControllerState::IDLE)
+            create_fake_votol_response(frame_counter, 840, -25, 24, 80, -500, ControllerState::IDLE)
         };
 
         handle_frame(env, &mut frame_counter, &mut frames).await;
