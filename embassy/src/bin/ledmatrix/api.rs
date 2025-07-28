@@ -25,12 +25,35 @@ pub fn write_num(number: u8, x: usize, y: usize, display: &mut Compositor) {
     display.blit(0+x, 0+y, 3, 6, &output_digit(number / 10));
     display.blit(4+x, 0+y, 3, 6, &output_digit(number % 10));
 }
+
 pub fn write_num_4_digits(number: i16, x: usize, y: usize, display: &mut Compositor) {
-    // TODO: negative numbers
-    display.blit(0+x, 0+y, 3, 6,  &output_digit(((number % 10000) / 1000) as u8));
-    display.blit(4+x, 0+y, 3, 6,  &output_digit(((number % 1000) / 100) as u8));
-    display.blit(8+x, 0+y, 3, 6,  &output_digit(((number % 100) / 10) as u8));
-    display.blit(12+x, 0+y, 3, 6, &output_digit((number % 10) as u8));
+    let abs_number = number.abs();
+    display.blit(0+x, 0+y, 3, 6,  &output_digit(((abs_number % 10000) / 1000) as u8));
+    display.blit(4+x, 0+y, 3, 6,  &output_digit(((abs_number % 1000) / 100) as u8));
+    display.blit(8+x, 0+y, 3, 6,  &output_digit(((abs_number % 100) / 10) as u8));
+    display.blit(12+x, 0+y, 3, 6, &output_digit((abs_number % 10) as u8));
+}
+
+pub fn write_signed_num_3_digits(number: i16, x: usize, y: usize, display: &mut Compositor) {
+    let abs_number = number.abs();
+    if number < 0 {
+        display.blit(0+x, 0+y, 3, 6, &output_character(b'-'));
+    }
+    display.blit(4+x, 0+y, 3, 6,  &output_digit(((abs_number % 1000) / 100) as u8));
+    display.blit(8+x, 0+y, 3, 6,  &output_digit(((abs_number % 100) / 10) as u8));
+    display.blit(12+x, 0+y, 3, 6, &output_digit((abs_number % 10) as u8));
+}
+
+// take a 16-bit signed integer and write it as a decimal divided by 1000
+pub fn write_signed_num_decimal_1k(number: i16, x: usize, y: usize, display: &mut Compositor) {
+    if number < 0 {
+        display.blit(0+x, 0+y, 3, 6, &output_character(b'-'));
+    }
+    let abs_number = number.abs();
+    display.blit(4+x, 0+y, 3, 6,  &output_digit((((abs_number / 100) % 1000) / 100) as u8));
+    display.blit(8+x, 0+y, 3, 6,  &output_digit((((abs_number / 100) % 100) / 10) as u8));
+    display.blit(12+x, 0+y, 3, 6,  &output_character(b'.'));
+    display.blit(14+x, 0+y, 3, 6,  &output_digit(((abs_number / 100) % 10) as u8));
 }
 
 pub fn write_char(char: u8, x: usize, y: usize, display: &mut Compositor) {
@@ -50,14 +73,14 @@ pub fn write_string(s: &str, x: usize, y: usize, start_idx: usize, max_len: usiz
     if s.is_empty() {
         return;
     }
-    
+
     let bytes = s.as_bytes();
     let end_idx = (start_idx + max_len).min(bytes.len());
-    
+
     if start_idx >= bytes.len() {
         return;
     }
-    
+
     for (i, &b) in bytes[start_idx..end_idx].iter().enumerate() {
         write_char(b, x + i * 4, y, display);
     }
@@ -81,6 +104,14 @@ pub fn write_battery_bar(voltage: i16, display: &mut Compositor) {
     let v_max = 840;
     let v_min = 550;
 
+    let voltage = if voltage < v_min {
+        v_min
+    } else if voltage > v_max {
+        v_max
+    } else {
+        voltage
+    };
+
     // we need a value from 1 to 32
     // multiply first otherwise it would go to 0-1
 
@@ -88,8 +119,11 @@ pub fn write_battery_bar(voltage: i16, display: &mut Compositor) {
     if number_of_leds < 1 {
         number_of_leds = 1;
     }
+    if number_of_leds > 31 {
+        number_of_leds = 31;
+    }
 
-    let bitmask: u32 = (1 << (number_of_leds+1)) - 1;
+    let bitmask: u64 = (1 << (number_of_leds+1)) - 1;
 
     // write to last row of bits on each display
     let a = flip_byte(((bitmask & 0x000000FF) >> 0) as u8);

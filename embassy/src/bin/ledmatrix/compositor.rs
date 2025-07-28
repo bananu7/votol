@@ -97,9 +97,36 @@ impl Compositor {
     }
 }
 
+fn reverse_bits(mut byte: u8) -> u8 {
+    // Reverse the bits in a single u8 value
+    let mut reversed = 0;
+    for _ in 0..8 {
+        reversed <<= 1;         // Shift reversed left by 1
+        reversed |= byte & 1;  // Add the least significant bit of `byte` to `reversed`
+        byte >>= 1;            // Shift `byte` right by 1
+    }
+    reversed
+}
+
+fn flip_180(data: &mut [[u8; 8]; 4]) {
+    // Reverse the squares
+    data.reverse();
+
+    // Reverse the rows and reverse the bits in each u8 value (row)
+    for row in data.iter_mut() {
+        row.reverse(); // Reverse the order of rows
+        for byte in row.iter_mut() {
+            *byte = reverse_bits(*byte); // Reverse the bits in each u8 value
+        }
+    }
+}
+
 pub fn write_out<CONN: Connector>(compositor: &Compositor, display: &mut max7219::MAX7219<CONN>) -> Result<(), DataError> {
+    let mut data: [[u8; 8]; 4] = compositor.data;
+    flip_180(&mut data);
+
     for i in 0..compositor.data.len() {
-        display.write_raw(i, &compositor.data[i])?;
+        display.write_raw(i, &data[i])?;
     }
     Ok(())
 }
