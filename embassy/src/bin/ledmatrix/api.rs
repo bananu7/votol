@@ -42,6 +42,7 @@ pub fn write_num_decimal_1k(number: i16, x: usize, y: usize, display: &mut Compo
     display.blit(4+x, 0+y, 3, 6,  &output_digit(((abs_number % 10000) / 1000) as u8));
     display.blit(8+x, 0+y, 3, 6,  &output_digit(((abs_number % 1000) / 100) as u8));
     display.blit(12+x, 0+y, 3, 6,  &output_character(b'.'));
+    display.blit(14+x, 0+y, 3, 6,  &output_digit(((abs_number % 100) / 10) as u8));
 }
 
 pub fn write_char(char: u8, x: usize, y: usize, display: &mut Compositor) {

@@ -61,7 +61,8 @@ pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: DisplayValue, compo
         }
         DisplayValue::Power => {
             write_num_decimal_1k(current * battery_voltage/10, 0, 0, compositor);
-            write_char(b'w', 18, 0, compositor);
+            write_char(b'K', 18, 0, compositor);
+            write_char(b'w', 21, 0, compositor);
         }
     }
 
