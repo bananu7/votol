@@ -109,12 +109,12 @@ fn reverse_bits(mut byte: u8) -> u8 {
 }
 
 fn flip_180(data: &mut [[u8; 8]; 4]) {
-    // Reverse the rows
+    // Reverse the squares
     data.reverse();
 
-    // Reverse the columns and reverse the bits in each u8 value
+    // Reverse the rows and reverse the bits in each u8 value (row)
     for row in data.iter_mut() {
-        row.reverse(); // Reverse the order of u8 values in the row
+        row.reverse(); // Reverse the order of rows
         for byte in row.iter_mut() {
             *byte = reverse_bits(*byte); // Reverse the bits in each u8 value
         }

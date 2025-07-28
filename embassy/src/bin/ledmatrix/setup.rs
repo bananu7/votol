@@ -15,7 +15,7 @@ pub fn setup_display(cs: Output<'static>, sck: Output<'static>, data: Output<'st
 
     display.power_on()?;
 
-    let intensity = 0x3; // 0x00 - 0x0F
+    let intensity = 0x6; // 0x00 - 0x0F
     display.set_intensity(0, intensity)?;
     display.set_intensity(1, intensity)?;
     display.set_intensity(2, intensity)?;
