@@ -1,4 +1,4 @@
-use crate::ledmatrix::api::{write_fullscreen_float, write_battery_bar, write_num, write_num_4_digits, write_char, write_string, write_num_decimal_1k};
+use crate::ledmatrix::api::{write_battery_bar, write_char, write_fullscreen_float, write_num, write_num_4_digits, write_signed_num_3_digits, write_signed_num_decimal_1k, write_string};
 use crate::ledmatrix::compositor::Compositor;
 use crate::can::can_frame::{clamp_temp_to_0, get_battery_current, get_battery_voltage, get_controller_temp, get_controller_error, get_external_temp, get_rpm, ThreeVotolFrames, ControllerError};
 
@@ -34,8 +34,15 @@ pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: DisplayValue, compo
     // todo: state or prop?
     match value_to_show {
         DisplayValue::Rpm => {
-            write_num_4_digits(get_rpm(&frames), 0, 0, compositor);
-            write_char(b'%', 18, 0, compositor);
+            let rpm = get_rpm(&frames);
+            if rpm < -999 || rpm > 9999 {
+                write_signed_num_decimal_1k(rpm, 0, 0, compositor);
+            } else if rpm < 0 {
+                write_signed_num_3_digits(rpm as i16, 0, 0, compositor);
+            } else {
+                write_num_4_digits(rpm as i16, 0, 0, compositor);
+            }
+            write_char(b'%', 19, 0, compositor);
         }
         DisplayValue::Speed => {
             let mut speed = rpm_to_speed(rpm);
@@ -47,8 +54,8 @@ pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: DisplayValue, compo
             write_num(speed, 12, 0, compositor);
         }
         DisplayValue::Current => {
-            write_num_4_digits(current as i16, 0, 0, compositor);
-            write_char(b'a', 18, 0, compositor);
+            write_signed_num_3_digits(current as i16, 0, 0, compositor);
+            write_char(b'A', 18, 0, compositor);
         }
         DisplayValue::ControllerMotorTemp => {
             write_num(controller_temp, 0, 0, compositor);
@@ -60,9 +67,9 @@ pub fn ride_screen(frames: &ThreeVotolFrames, value_to_show: DisplayValue, compo
             write_fullscreen_float(battery_voltage, compositor);
         }
         DisplayValue::Power => {
-            write_num_decimal_1k(current * battery_voltage/10, 0, 0, compositor);
-            write_char(b'K', 18, 0, compositor);
-            write_char(b'w', 21, 0, compositor);
+            write_signed_num_decimal_1k(current * (battery_voltage/10), 0, 0, compositor);
+            write_char(b'<', 19, 0, compositor);
+            write_char(b'W', 22, 0, compositor);
         }
     }
 
@@ -83,7 +90,7 @@ fn rpm_to_speed(rpm: i16) -> u8 {
 
     // try to get the number large first
     let speed =
-        rpm as i32 // use u32 for more precise math
+        rpm as i64 // use i64 for more precise math
         * front_sprocket
         * motor_reduction_a
         * wheel_circumference
